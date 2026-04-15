@@ -122,6 +122,12 @@ export default function PerfilPublico() {
                         {/* REMOVIDO: Span do Nível */}
                     </div>
 
+                    {perfil.bio ? (
+                        <p className="text-sm text-gray-300 mb-6 px-2 italic text-center w-full max-w-[280px]">"{perfil.bio}"</p>
+                    ) : (
+                        <p className="text-xs text-gray-500 mb-6 px-2 italic text-center w-full max-w-[280px]">This user does not have a bio yet.</p>
+                    )}
+
                     {/* REDES SOCIAIS E APOIO */}
                     <div className="flex flex-col gap-4 mb-6 w-full px-4">
                         <div className="flex justify-center gap-4">

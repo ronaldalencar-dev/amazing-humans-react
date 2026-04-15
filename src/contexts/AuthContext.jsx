@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
         // Se sim, e o e-mail não estiver verificado, bloqueamos o acesso.
         // (Exceção: provedores como Google já vêm com emailVerified = true ou confiamos neles)
         if (!firebaseUser.emailVerified && firebaseUser.providerData.some(p => p.providerId === 'password')) {
-          toast.error("Por favor, verifique seu e-mail antes de fazer o login.");
+          toast.error("Please verify your email before logging in.");
           await signOut(auth);
           setUser(null);
           setLoadingAuth(false);
@@ -45,20 +45,21 @@ export function AuthProvider({ children }) {
             const dados = docSnap.data();
 
             if (dados.banned === true) {
-              toast.error("Esta conta foi suspensa.");
+              toast.error("This account has been suspended.");
               await signOut(auth);
               setUser(null);
               setLoadingAuth(false);
               return;
             }
 
-            const avatarFinal = dados.foto || firebaseUser.photoURL || generateAvatar(uid);
+            const avatarFinal = dados.foto || generateAvatar(uid);
 
             setUser({
               uid: uid,
               name: dados.nome || firebaseUser.displayName,
               avatar: avatarFinal,
               cover: dados.capa || null,
+              bio: dados.bio || '',
               email: firebaseUser.email,
               role: dados.role || 'user',
 
@@ -82,8 +83,9 @@ export function AuthProvider({ children }) {
             // Usuário novo
             setUser({
               uid: uid,
-              name: firebaseUser.displayName || "Carregando...",
-              avatar: firebaseUser.photoURL || generateAvatar(uid),
+              name: firebaseUser.displayName || "Loading...",
+              avatar: generateAvatar(uid),
+              bio: '',
               email: firebaseUser.email,
               role: 'user',
               coins: 0,
@@ -118,7 +120,7 @@ export function AuthProvider({ children }) {
             nome: result.user.displayName,
             email: result.user.email,
             createdAt: new Date(),
-            avatar: result.user.photoURL || null
+            avatar: generateAvatar(uid)
           });
         }
         // Se já existir, NÃO atualizamos o nome para não sobrescrever customizações do usuário
@@ -138,7 +140,7 @@ export function AuthProvider({ children }) {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Erro ao fazer login");
+      toast.error("Error logging in");
     }
   }
 
@@ -177,7 +179,7 @@ export function AuthProvider({ children }) {
 
         // --- ENVIAR EMAIL DE VERIFICAÇÃO ---
         await sendEmailVerification(result.user);
-        toast.success("Conta criada! Enviamos um link de confirmação para o seu e-mail.", { duration: 6000 });
+        toast.success("Account created! We've sent a verification link to your email.", { duration: 6000 });
         
         // Desloga o usuário imediatamente para ele não navegar sem confirmar
         await signOut(auth);
@@ -186,11 +188,11 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error(error);
       if (error.code === 'auth/email-already-in-use') {
-        toast.error("Este e-mail já existe. Se você já usou o Google para entrar antes, precisa usar o botão do Google novamente.", { duration: 5000 });
+        toast.error("This email already exists. If you used Google to sign in before, you need to use the Google button again.", { duration: 5000 });
       } else if (error.code === 'auth/weak-password') {
-        toast.error("A senha deve ter pelo menos 6 caracteres.");
+        toast.error("Password must be at least 6 characters.");
       } else {
-        toast.error("Erro ao criar conta.");
+        toast.error("Error creating account.");
       }
     }
   }
@@ -201,9 +203,9 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error(error);
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        toast.error("E-mail ou senha incorretos.");
+        toast.error("Incorrect email or password.");
       } else {
-        toast.error("Erro ao fazer login.");
+        toast.error("Error logging in.");
       }
     }
   }

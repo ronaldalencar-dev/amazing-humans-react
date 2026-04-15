@@ -147,10 +147,10 @@ export default function Biblioteca() {
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-[#2a2a2a]">
                     <select value={item.status || 'reading'} onChange={(e) => mutationStatus.mutate({ id: item.id, novoStatus: e.target.value })} className="bg-[#252525] text-gray-400 text-xs py-1.5 px-3 rounded-lg border border-[#444] outline-none cursor-pointer focus:border-zinc-500">
-                        <option value="reading">Lendo</option><option value="completed">Lido</option><option value="plan">A Ler</option><option value="remove">Remover</option>
+                        <option value="reading">Reading</option><option value="completed">Completed</option><option value="plan">Plan to Read</option><option value="remove">Remove</option>
                     </select>
                     <Link to={item.ultimoCapituloId ? `/ler/${item.ultimoCapituloId}` : `/obra/${item.obraId}`} className={`px-5 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all ${item.progresso === 100 ? 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333]' : 'bg-zinc-600 hover:bg-zinc-500 text-white shadow-lg'}`}>
-                        <MdPlayArrow size={16} /> {item.ultimoCapituloId ? "Continuar" : "Começar"}
+                        <MdPlayArrow size={16} /> {item.ultimoCapituloId ? "Continue" : "Start"}
                     </Link>
                 </div>
             </div>

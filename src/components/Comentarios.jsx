@@ -226,7 +226,7 @@ export default function Comentarios({ targetId, targetType = 'capitulo', targetA
                 setComentarios(lista);
             },
             (error) => {
-                console.error("Erro Comentários:", error);
+                console.error("Comments Error:", error);
                 if (error.code === 'failed-precondition' || error.message.includes('index')) {
                     setErrorIndex(error);
                 }

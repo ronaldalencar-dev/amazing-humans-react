@@ -24,6 +24,7 @@ export default function Perfil() {
 
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(user?.name || '');
+    const [bio, setBio] = useState(user?.bio || '');
     const navigate = useNavigate();
     const [avatarUrl, setAvatarUrl] = useState('');
     const [coverUrl, setCoverUrl] = useState('');
@@ -58,6 +59,7 @@ export default function Perfil() {
     useEffect(() => {
         if (user) {
             setName(user.name || '');
+            setBio(user.bio || '');
             setAvatarUrl(user.avatar || '');
             setCoverUrl(user.cover || '');
             setSocial({
@@ -76,6 +78,7 @@ export default function Perfil() {
             const userRef = doc(db, "usuarios", user.uid);
             await updateDoc(userRef, {
                 nome: name,
+                bio: bio,
                 foto: avatarUrl,
                 capa: coverUrl,
                 website: social.website,
@@ -148,7 +151,13 @@ export default function Perfil() {
                                 {user?.isVip && <MdDiamond className="text-yellow-400 text-xl drop-shadow-md" title="VIP Member" />}
                                 {user?.badges?.includes('pioneer') && <MdVerified className="text-zinc-400 text-xl" title="Pioneer" />}
                             </h2>
-                            {/* REMOVIDO: Span do Nível */}
+                            {!isEditing && (
+                                user?.bio ? (
+                                    <p className="text-sm text-gray-300 mt-2 px-2 italic text-center w-full max-w-[280px]">"{user.bio}"</p>
+                                ) : (
+                                    <p className="text-xs text-gray-500 mt-2 px-2 italic text-center w-full max-w-[280px]">This user does not have a bio yet.</p>
+                                )
+                            )}
                         </div>
 
                         {!isEditing && (
@@ -184,6 +193,7 @@ export default function Perfil() {
                                     </div>
 
                                     <div><label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Display Name</label><input type="text" value={name} onChange={(e) => setName(e.target.value)} className="input-modern w-full text-xs" /></div>
+                                    <div><label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Bio / About Me</label><textarea maxLength={500} value={bio} onChange={(e) => setBio(e.target.value)} className="input-modern w-full text-xs min-h-[80px] resize-y" placeholder="Tell us about yourself..." /></div>
                                     <div><label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Avatar URL</label><input type="text" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)} className="input-modern w-full text-xs" /></div>
                                     <div><label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Website</label><input type="text" value={social.website} onChange={(e) => setSocial({ ...social, website: e.target.value })} className="input-modern w-full text-xs" /></div>
                                     <div><label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Twitter</label><input type="text" value={social.twitter} onChange={(e) => setSocial({ ...social, twitter: e.target.value })} className="input-modern w-full text-xs" /></div>

@@ -11,7 +11,7 @@ export async function parseFile(file) {
     if (fileType === 'docx' || fileType === 'doc') {
         return await parseDocx(file);
     } else {
-        throw new Error("Formato não suportado. Por favor, faça o upload de arquivos Word (.docx)");
+        throw new Error("Unsupported format. Please upload Word (.docx) files");
     }
 }
 

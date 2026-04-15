@@ -143,7 +143,7 @@ export default function Obra() {
                     if (histSnap.exists()) {
                         setLastReadId(histSnap.data().lastChapterId);
                     }
-                } catch (histErr) { console.warn("Erro histórico", histErr); }
+                } catch (histErr) { console.warn("History error", histErr); }
             }
             loadHistory();
         }
@@ -190,7 +190,7 @@ export default function Obra() {
             }
 
         } catch (err) {
-            console.error("Erro ao buscar capítulos:", err);
+            console.error("Error fetching chapters:", err);
         } finally {
             setLoadingCaps(false);
         }
@@ -243,7 +243,7 @@ export default function Obra() {
     if (!obra) return (
         <div className="min-h-screen flex items-center justify-center text-white">
             <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2">Obra não encontrada</h2>
+                <h2 className="text-2xl font-bold mb-2">Book not found</h2>
                 <Link to="/" className="text-primary hover:underline">Voltar para Home</Link>
             </div>
         </div>
