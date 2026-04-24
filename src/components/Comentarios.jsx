@@ -8,15 +8,15 @@ import {
     arrayUnion, arrayRemove, orderBy
 } from 'firebase/firestore';
 import {
-    MdThumbUp, MdThumbUpOffAlt, MdDelete, MdSort, MdKeyboardArrowDown, MdKeyboardArrowUp,
+    MdDelete, MdSort, MdKeyboardArrowDown, MdKeyboardArrowUp,
     MdChevronLeft, MdChevronRight, MdErrorOutline, MdReply
 } from 'react-icons/md';
 import toast from 'react-hot-toast';
 
 // Helper para avatar
-const getFallbackAvatar = (name) => `https://ui-avatars.com/api/?name=${name || 'User'}&background=random`;
+const getFallbackAvatar = (name) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=random`;
 
-const ReplyItem = ({ dados, user, handleLike, handleDelete, handleResponderClick, styles }) => {
+const ReplyItem = ({ dados, user, handleDelete, handleResponderClick, styles }) => {
 
     const isOwner = user?.uid === dados.autorId;
     const timeString = dados.data ? new Date(dados.data.seconds * 1000).toLocaleDateString() : 'just now';
@@ -60,7 +60,7 @@ const ReplyItem = ({ dados, user, handleLike, handleDelete, handleResponderClick
 const CommentThread = ({
     dados, todasRespostas, user,
     respondendoA, setRespondendoA, textoResposta, setTextoResposta,
-    handleLike, handleDelete, handleEnviar, styles
+    handleDelete, handleEnviar, styles
 }) => {
     const [mostrarRespostas, setMostrarRespostas] = useState(false);
 
@@ -138,7 +138,6 @@ const CommentThread = ({
                                         key={resp.id}
                                         dados={resp}
                                         user={user}
-                                        handleLike={handleLike}
                                         handleDelete={handleDelete}
                                         handleResponderClick={prepararResposta}
                                         styles={styles}
@@ -240,6 +239,14 @@ export default function Comentarios({ targetId, targetType = 'capitulo', targetA
         const textoFinal = parentId ? textoResposta : novoTexto;
         if (!textoFinal.trim()) return;
 
+        const countWords = (text) => text.trim().split(/\s+/).filter(word => word.length > 0).length;
+        if (countWords(textoFinal) > 500) {
+            return toast.error("Comment cannot exceed 500 words.");
+        }
+        if (textoFinal.length > 5000) {
+            return toast.error("Comment is too long.");
+        }
+
         try {
             await addDoc(collection(db, "comentarios"), {
                 texto: textoFinal,
@@ -249,7 +256,6 @@ export default function Comentarios({ targetId, targetType = 'capitulo', targetA
                 targetId: targetId,
                 targetType: targetType,
                 parentId: parentId,
-                likes: [],
                 data: serverTimestamp()
             });
 
@@ -274,13 +280,6 @@ export default function Comentarios({ targetId, targetType = 'capitulo', targetA
         } catch (error) {
             toast.error("Error sending comment.");
         }
-    }
-
-    async function handleLike(id, likesAtuais) {
-        if (!user) return toast.error("Login to like.");
-        const docRef = doc(db, "comentarios", id);
-        if (likesAtuais?.includes(user.uid)) { await updateDoc(docRef, { likes: arrayRemove(user.uid) }); }
-        else { await updateDoc(docRef, { likes: arrayUnion(user.uid) }); }
     }
 
     async function handleDelete(id) {
@@ -353,7 +352,6 @@ export default function Comentarios({ targetId, targetType = 'capitulo', targetA
                         setRespondendoA={setRespondendoA}
                         textoResposta={textoResposta}
                         setTextoResposta={setTextoResposta}
-                        handleLike={handleLike}
                         handleDelete={handleDelete}
                         handleEnviar={handleEnviar}
                         styles={styles}
