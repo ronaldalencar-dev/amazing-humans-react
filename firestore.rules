@@ -61,7 +61,10 @@ service cloud.firestore {
       allow delete: if isAdmin() || isOwner('autorId');
       
       // Admin pode atualizar (para banir/ocultar) OU Dono pode atualizar OU Incremento de visualização
-      allow update: if isAdmin() || isOwner('autorId') || (isLoggedIn() && isViewIncrement());
+      // SEGURANÇA: Dono não pode transferir a posse (autorId) nem manipular visualizações (views)
+      allow update: if isAdmin() || 
+                    (isOwner('autorId') && request.resource.data.autorId == resource.data.autorId && request.resource.data.views == resource.data.views) || 
+                    (isLoggedIn() && isViewIncrement());
     }
 
     // ==========================================================
@@ -73,7 +76,10 @@ service cloud.firestore {
       
       // Admin tem permissão total para moderar
       allow delete: if isAdmin() || isOwner('autorId'); 
-      allow update: if isAdmin() || isOwner('autorId');
+      
+      // SEGURANÇA: Impedir que o autor transfira o capítulo para outro usuário ou obra
+      allow update: if isAdmin() || 
+                    (isOwner('autorId') && request.resource.data.autorId == resource.data.autorId && request.resource.data.obraId == resource.data.obraId);
     }
 
     // ==========================================================
@@ -125,7 +131,12 @@ service cloud.firestore {
     // ==========================================================
     match /comentarios/{docId} { 
       allow read: if true;
-      allow create: if isLoggedIn() && request.resource.data.autorId == request.auth.uid;
+      // SEGURANÇA: Impede payloads gigantes (DoS) e garante que o autorId seja correto.
+      allow create: if isLoggedIn() 
+                    && request.resource.data.autorId == request.auth.uid
+                    && request.resource.data.texto is string
+                    && request.resource.data.texto.size() > 0
+                    && request.resource.data.texto.size() <= 5000;
       allow delete: if isAdmin() || (isLoggedIn() && request.auth.uid == resource.data.autorId);
       allow update: if false; // Comentários não são editáveis por design
     }
@@ -133,7 +144,13 @@ service cloud.firestore {
     // Notificações: Apenas o destinatário pode ler/marcar como lida.
     match /notificacoes/{docId} { 
       allow read, update, delete: if isLoggedIn() && resource.data.paraId == request.auth.uid;
-      allow create: if isLoggedIn(); // Sistema ou usuários podem criar notificações
+      
+      // SEGURANÇA: Restringir a criação a payloads válidos para evitar spam e injeções
+      allow create: if isLoggedIn()
+                    && request.resource.data.keys().hasAll(['paraId', 'mensagem', 'tipo', 'lida'])
+                    && request.resource.data.mensagem is string
+                    && request.resource.data.mensagem.size() <= 500
+                    && request.resource.data.lida == false;
     }
     
     // Biblioteca: Apenas o dono da biblioteca pode ver/editar
