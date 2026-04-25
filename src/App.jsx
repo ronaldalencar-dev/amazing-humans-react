@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
+import WelcomeModal from './components/WelcomeModal';
 import CacheProvider from './contexts/CacheContext';
 
 // --- IMPORTS DINÂMICOS ---
@@ -48,6 +49,7 @@ function App() {
           <Toaster position="top-center" toastOptions={{ style: { background: '#333', color: '#fff', border: '1px solid #4a90e2' } }} />
 
           <main className="min-h-screen">
+            <WelcomeModal />
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
                 <Route path="/" element={<Home />} />

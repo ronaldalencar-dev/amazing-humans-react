@@ -155,9 +155,11 @@ export default function Header() {
 
           <div className="hidden lg:flex items-center gap-6">
 
-            {/* <Link to="/subscription" className="hidden lg:flex items-center gap-2 bg-gradient-to-r from-yellow-600/10 to-yellow-600/20 hover:from-yellow-600/20 hover:to-yellow-600/30 text-yellow-500 border border-yellow-500/30 px-4 py-1.5 rounded-full font-bold text-xs transition-all shadow-[0_0_15px_-5px_rgba(234,179,8,0.3)]">★ Subscription</Link> */}
+            <Link to="/how-it-works" className="flex items-center gap-2 text-gray-300 hover:text-white font-bold text-sm transition-colors">
+              <MdInfoOutline size={18} /> How it Works
+            </Link>
 
-            <a href="https://buymeacoffee.com/rlokin222" target="_blank" className="flex items-center gap-2 bg-secondary/10 hover:bg-secondary/20 text-secondary border border-secondary/20 px-4 py-1.5 rounded-full font-bold text-xs transition-all"><FaCoffee size={14} /> Support</a>
+            <a href="https://buymeacoffee.com/rlokin222" target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-secondary/10 hover:bg-secondary/20 text-secondary border border-secondary/20 px-4 py-1.5 rounded-full font-bold text-xs transition-all"><FaCoffee size={14} /> Support</a>
 
             {!signed ? (
               <Link to="/login" className="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-full font-bold transition text-sm shadow-lg shadow-primary/20">Login</Link>
