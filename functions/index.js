@@ -475,3 +475,101 @@ exports.deleteUserAccount = onCall({ cors: true }, async (request) => {
     }
 });
 
+// ======================================================
+// 7. EMAIL OTP VERIFICATION
+// ======================================================
+
+exports.sendVerificationOTP = onCall({ cors: true }, async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
+    
+    const uid = request.auth.uid;
+    const email = request.auth.token.email;
+    const { getAuth } = require("firebase-admin/auth");
+    
+    const userRecord = await getAuth().getUser(uid);
+    if (userRecord.emailVerified) {
+        throw new HttpsError('failed-precondition', 'Email is already verified.');
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); 
+
+    await db.collection('verificationCodes').doc(uid).set({
+        code: otp,
+        email: email,
+        expiresAt: Timestamp.fromDate(expiresAt),
+        attempts: 0
+    });
+
+    const nodemailer = require("nodemailer");
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.SMTP_EMAIL,
+            pass: process.env.SMTP_PASS
+        }
+    });
+
+    const mailOptions = {
+        from: `Amazing Humans <${process.env.SMTP_EMAIL}>`,
+        to: email,
+        subject: 'Your Verification Code',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; text-align: center; border: 1px solid #eaeaea; border-radius: 10px;">
+                <h2 style="color: #333;">Welcome to Amazing Humans!</h2>
+                <p style="color: #555; font-size: 16px;">Use the 6-digit code below to verify your email address. This code expires in 15 minutes.</p>
+                <div style="background-color: #f4f4f4; padding: 15px; font-size: 28px; font-weight: bold; letter-spacing: 8px; margin: 30px 0; border-radius: 8px; color: #111;">
+                    ${otp}
+                </div>
+                <p style="color: #999; font-size: 12px;">If you didn't request this, you can safely ignore this email.</p>
+            </div>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        logger.error("Error sending OTP email:", error);
+        throw new HttpsError('internal', 'Error sending email.');
+    }
+});
+
+exports.verifyOTP = onCall({ cors: true }, async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'User must be logged in.');
+    
+    const uid = request.auth.uid;
+    const { code } = request.data;
+    
+    if (!code) throw new HttpsError('invalid-argument', 'Code is required.');
+
+    const docRef = db.collection('verificationCodes').doc(uid);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists()) {
+        throw new HttpsError('not-found', 'No verification code found. Please request a new one.');
+    }
+
+    const data = docSnap.data();
+
+    if (data.attempts >= 5) {
+        throw new HttpsError('resource-exhausted', 'Too many failed attempts. Request a new code.');
+    }
+
+    if (data.expiresAt.toDate() < new Date()) {
+        throw new HttpsError('failed-precondition', 'Verification code has expired. Request a new one.');
+    }
+
+    if (data.code !== code) {
+        await docRef.update({ attempts: FieldValue.increment(1) });
+        throw new HttpsError('invalid-argument', 'Incorrect code.');
+    }
+
+    const { getAuth } = require("firebase-admin/auth");
+    await getAuth().updateUser(uid, { emailVerified: true });
+
+    await docRef.delete();
+
+    return { success: true };
+});
+

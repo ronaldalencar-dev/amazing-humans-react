@@ -5,6 +5,63 @@ import { doc, setDoc, onSnapshot, getDoc } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import toast from 'react-hot-toast';
 
+const VerifyEmailModal = ({ firebaseUser, auth }) => {
+  const [code, setCode] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleVerify = async () => {
+    if (!code) return;
+    setLoading(true);
+    try {
+      const verifyOTP = httpsCallable(getFunctions(), 'verifyOTP');
+      await verifyOTP({ code });
+      toast.success("Email verified successfully!");
+      await firebaseUser.reload();
+      window.location.reload();
+    } catch (error) {
+      toast.error(error.message || "Invalid code");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleResend = async () => {
+    try {
+      const sendVerificationOTP = httpsCallable(getFunctions(), 'sendVerificationOTP');
+      await sendVerificationOTP();
+      toast.success("New code sent!");
+    } catch(err) {
+       toast.error("Error sending code.");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0F0F0F] flex items-center justify-center p-4">
+      <div className="bg-[#18181b] border border-zinc-800 p-8 rounded-2xl max-w-md w-full text-center">
+        <h2 className="text-2xl font-bold text-white mb-2">Verify your email</h2>
+        <p className="text-zinc-400 text-sm mb-6">We've sent a 6-digit code to <strong>{firebaseUser.email}</strong></p>
+        <input 
+          type="text" 
+          maxLength={6}
+          value={code}
+          onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+          className="w-full bg-[#27272a] text-white text-center text-3xl tracking-[0.5em] font-bold py-4 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-zinc-500"
+          placeholder="000000"
+        />
+        <button 
+          onClick={handleVerify} 
+          disabled={loading || code.length !== 6}
+          className="w-full bg-zinc-200 text-black font-bold py-3 rounded-xl hover:bg-white disabled:opacity-50 mb-4 transition-all"
+        >
+          {loading ? "Verifying..." : "Verify Code"}
+        </button>
+        <button onClick={handleResend} className="text-zinc-400 text-sm hover:text-white transition-colors">Resend Code</button>
+        <button onClick={() => signOut(auth)} className="block w-full mt-6 text-red-400 text-sm hover:text-red-300 transition-colors">Logout</button>
+      </div>
+    </div>
+  );
+};
+
 export const AuthContext = createContext({});
 
 export function useAuth() {
@@ -21,21 +78,20 @@ function generateAvatar(seed) {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+  const [firebaseUserObject, setFirebaseUserObject] = useState(null);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         
         // --- VERIFICAÇÃO DE EMAIL ---
-        // Checamos se o usuário logou por e-mail/senha.
-        // Se sim, e o e-mail não estiver verificado, bloqueamos o acesso.
-        // (Exceção: provedores como Google já vêm com emailVerified = true ou confiamos neles)
         if (!firebaseUser.emailVerified && firebaseUser.providerData.some(p => p.providerId === 'password')) {
-          toast.error("Please verify your email before logging in.");
-          await signOut(auth);
-          setUser(null);
+          setFirebaseUserObject(firebaseUser);
+          setUser({ isPendingVerification: true });
           setLoadingAuth(false);
           return;
+        } else {
+          setFirebaseUserObject(null);
         }
 
         const uid = firebaseUser.uid;
@@ -177,12 +233,12 @@ export function AuthProvider({ children }) {
           }
         }
 
-        // --- ENVIAR EMAIL DE VERIFICAÇÃO ---
-        await sendEmailVerification(result.user);
-        toast.success("Account created! We've sent a verification link to your email.", { duration: 6000 });
+        // --- ENVIAR EMAIL DE VERIFICAÇÃO COM CÓDIGO (OTP) ---
+        const sendVerificationOTP = httpsCallable(getFunctions(), 'sendVerificationOTP');
+        await sendVerificationOTP();
+        toast.success("Account created! We've sent a 6-digit code to your email.", { duration: 6000 });
         
-        // Desloga o usuário imediatamente para ele não navegar sem confirmar
-        await signOut(auth);
+        // Mantemos o usuário logado para que ele veja a tela de inserir o código OTP.
 
       }
     } catch (error) {
@@ -229,6 +285,10 @@ export function AuthProvider({ children }) {
 
     return true;
   }, [user]);
+
+  if (user?.isPendingVerification && firebaseUserObject) {
+    return <VerifyEmailModal firebaseUser={firebaseUserObject} auth={auth} />;
+  }
 
   return (
     <AuthContext.Provider value={{ signed: !!user, user, signInGoogle, registerEmail, loginEmail, logout, loadingAuth, isAdmin, hasAds }}>
