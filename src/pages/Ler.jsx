@@ -88,6 +88,9 @@ export default function Ler() {
             stopSpeaking();
 
             try {
+                // Delay artificial para a tela de carregamento ser vista por 2s
+                await new Promise(resolve => setTimeout(resolve, 1800));
+
                 const docRef = doc(db, "capitulos", id);
                 const docSnap = await getDoc(docRef);
 
@@ -204,7 +207,12 @@ export default function Ler() {
     const cleanContent = React.useMemo(() => capitulo?.conteudo ? DOMPurify.sanitize(capitulo.conteudo) : '', [capitulo?.conteudo]);
     const cleanNote = React.useMemo(() => capitulo?.authorNote ? DOMPurify.sanitize(capitulo.authorNote) : null, [capitulo?.authorNote]);
 
-    if (loading) return <div className="loading-spinner"></div>;
+    if (loading) return (
+        <div className={`min-h-screen flex flex-col items-center justify-center transition-colors duration-500 ${currentTheme?.bg || 'bg-[#0F0F0F]'}`}>
+            <div className="w-16 h-16 border-4 border-zinc-700 border-t-zinc-300 rounded-full animate-spin mb-4 shadow-[0_0_15px_rgba(255,255,255,0.1)]"></div>
+            <p className={`text-lg font-medium tracking-wide animate-pulse ${currentTheme?.text || 'text-gray-300'}`}>Carregando...</p>
+        </div>
+    );
 
     if (!capitulo) return (
         <div className="min-h-screen flex flex-col items-center justify-center text-white">

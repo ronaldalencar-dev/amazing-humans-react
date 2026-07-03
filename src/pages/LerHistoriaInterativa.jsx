@@ -44,6 +44,9 @@ export default function LerHistoriaInterativa() {
         async function load() {
             setLoading(true);
             try {
+                // Delay artificial para a tela de carregamento ser vista por 2s
+                await new Promise(resolve => setTimeout(resolve, 1800));
+
                 const snap = await getDoc(doc(db, 'historias_interativas', id));
                 if (!snap.exists()) {
                     toast.error('Story not found.');
@@ -111,7 +114,12 @@ export default function LerHistoriaInterativa() {
 
     const isEnding = currentNode?.isEnding || (!currentNode?.choices?.length && currentNode);
 
-    if (loading) return <div className="loading-spinner" />;
+    if (loading) return (
+        <div className={`min-h-screen flex flex-col items-center justify-center transition-colors duration-500 ${theme?.bg || 'bg-[#0F0F0F]'}`}>
+            <div className="w-16 h-16 border-4 border-zinc-700 border-t-zinc-300 rounded-full animate-spin mb-4 shadow-[0_0_15px_rgba(255,255,255,0.1)]"></div>
+            <p className={`text-lg font-medium tracking-wide animate-pulse ${theme?.text || 'text-gray-300'}`}>Carregando...</p>
+        </div>
+    );
 
     if (!historia || !currentNode) return (
         <div className="min-h-screen flex flex-col items-center justify-center text-white">

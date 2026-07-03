@@ -151,14 +151,18 @@ export default function Obra() {
 
     // --- BUSCA DE CAPÍTULOS ---
     async function fetchChapters(pageNumber) {
+        setLoadingCaps(true);
+        // Delay artificial de quase 2 segundos para apreciar o loader
+        await new Promise(resolve => setTimeout(resolve, 1800));
+
         if (chaptersCache[pageNumber]) {
             setCapitulos(chaptersCache[pageNumber]);
             setPage(pageNumber);
             setHasMoreDocs(chaptersCache[pageNumber].length === CHAPTERS_PER_PAGE);
+            setLoadingCaps(false);
             return;
         }
 
-        setLoadingCaps(true);
         try {
             const capsRef = collection(db, "capitulos");
             const limitDocs = pageNumber * CHAPTERS_PER_PAGE;
@@ -362,7 +366,10 @@ export default function Obra() {
                     </div>
 
                     {loadingCaps ? (
-                        <div className="p-8 text-center text-gray-500">Loading chapters...</div>
+                        <div className="p-16 flex flex-col items-center justify-center text-gray-500 bg-[#1a1a1a] border border-white/5 rounded-xl">
+                            <div className="w-10 h-10 border-4 border-zinc-700 border-t-zinc-300 rounded-full animate-spin mb-4 shadow-[0_0_15px_rgba(255,255,255,0.1)]"></div>
+                            <span className="animate-pulse font-medium tracking-wide">Loading chapters...</span>
+                        </div>
                     ) : (
                         <div className="bg-[#1a1a1a] border border-white/5 rounded-xl overflow-hidden divide-y divide-white/5">
                             {capitulos.length > 0 ? capitulos.map((cap, i) => {
