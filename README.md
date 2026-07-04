@@ -16,16 +16,4 @@ Amazing Humans is a modern storytelling platform where readers and writers conne
 - **Backend & Database:** Firebase (Firestore, Authentication, Cloud Functions)
 - **Deployment:** Firebase Hosting
 
-## Running Locally
 
-To run the project locally, make sure you have Node.js installed, then execute:
-
-```bash
-# Install dependencies
-npm install
-
-# Start the development server
-npm run dev
-```
-
-Visit `http://localhost:5173` to see the application running.
