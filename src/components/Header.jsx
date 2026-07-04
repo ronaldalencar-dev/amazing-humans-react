@@ -2,11 +2,12 @@ import React, { useContext, useState, useEffect, useRef } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { db } from '../services/firebaseConnection';
 import { collection, query, where, onSnapshot, limit } from 'firebase/firestore';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import {
   MdMenu, MdNotifications, MdPerson, MdEditNote,
   MdBookmarks, MdLogout, MdArrowDropDown,
-  MdHome, MdClose, MdInfoOutline, MdSecurity, MdSettings
+  MdHome, MdClose, MdInfoOutline, MdSecurity, MdSettings, MdChatBubbleOutline
 } from 'react-icons/md';
 import { FaCoffee } from 'react-icons/fa';
 
@@ -114,27 +115,20 @@ export default function Header() {
 
               {isUserAdmin && <Link to="/admin" onClick={() => setShowDrawer(false)} className="drawer-link text-red-400 bg-red-500/10 border-red-500/20 mb-2 rounded-lg"><MdSecurity size={20} /> <span>Admin Panel</span></Link>}
 
-              {/* --- Link do Dashboard no Mobile --- */}
-              {/* <Link to="/subscription" onClick={() => setShowDrawer(false)} className="drawer-link"><span className="text-yellow-500">★</span> <span>Subscription</span></Link> */}
               <Link to="/dashboard" onClick={() => setShowDrawer(false)} className="drawer-link"><MdEditNote size={20} /> <span>Dashboard</span></Link>
-
-              <Link to="/" onClick={() => setShowDrawer(false)} className="drawer-link"><MdHome size={20} /> <span>Home</span></Link>
-              <Link to="/perfil" onClick={() => setShowDrawer(false)} className="drawer-link"><MdPerson size={20} /> <span>Profile</span></Link>
               <Link to="/biblioteca" onClick={() => setShowDrawer(false)} className="drawer-link"><MdBookmarks size={20} /> <span>Library</span></Link>
-              <Link to="/escrever" onClick={() => setShowDrawer(false)} className="drawer-link"><MdEditNote size={20} /> <span>Write</span></Link>
 
-              <Link to="/notificacoes" onClick={() => setShowDrawer(false)} className="drawer-link flex justify-between">
-                <span className="flex items-center gap-3"><MdNotifications size={20} /> <span>Notifications</span></span>
-                {notifCount > 0 && <span className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">{notifCount}</span>}
-              </Link>
+              <Link to="/feedback" onClick={(e) => { setShowDrawer(false); if (!signed) { e.preventDefault(); toast.error("Você precisa estar logado para enviar um feedback."); } }} className="drawer-link text-purple-400"><MdChatBubbleOutline size={20} /> <span>Give your Feedback</span></Link>
+
               <Link to="/settings" onClick={() => setShowDrawer(false)} className="drawer-link"><MdSettings size={20} /> <span>Settings</span></Link>
               <button onClick={() => { logout(); setShowDrawer(false); }} className="drawer-link text-red-400 mt-4 border-t border-white/5 pt-4"><MdLogout size={20} /> <span>Logout</span></button>
             </>
           ) : (
             <>
-              <Link to="/" onClick={() => setShowDrawer(false)} className="drawer-link"><MdHome size={20} /> <span>Home</span></Link>
-              {/* <Link to="/subscription" onClick={() => setShowDrawer(false)} className="drawer-link"><span className="text-yellow-500">★</span> <span>Subscription</span></Link> */}
               <Link to="/how-it-works" onClick={() => setShowDrawer(false)} className="drawer-link"><MdInfoOutline size={20} /> <span>How it Works</span></Link>
+              
+              <Link to="/feedback" onClick={(e) => { setShowDrawer(false); e.preventDefault(); toast.error("Você precisa estar logado para enviar um feedback."); }} className="drawer-link text-purple-400"><MdChatBubbleOutline size={20} /> <span>Give your Feedback</span></Link>
+
               <Link to="/login" onClick={() => setShowDrawer(false)} className="mt-4 mx-2 bg-primary text-white py-3 rounded-lg font-bold text-center shadow-lg"><span>Login / Sign Up</span></Link>
             </>
           )}
@@ -153,10 +147,25 @@ export default function Header() {
             </Link>
           </div>
 
+          <div className="flex lg:hidden items-center gap-4">
+            {signed && (
+              <Link to="/notificacoes" className={`relative transition-colors ${animateBell ? 'animate-bell' : 'text-gray-400 hover:text-white'}`}>
+                <MdNotifications size={24} />
+                {notifCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0a0a0a] animate-bounce"></span>
+                )}
+              </Link>
+            )}
+          </div>
+
           <div className="hidden lg:flex items-center gap-6">
 
             <Link to="/how-it-works" className="flex items-center gap-2 text-gray-300 hover:text-white font-bold text-sm transition-colors">
               <MdInfoOutline size={18} /> How it Works
+            </Link>
+
+            <Link to="/feedback" onClick={(e) => { if (!signed) { e.preventDefault(); toast.error("Você precisa estar logado para enviar um feedback."); } }} className="flex items-center gap-2 text-purple-400 hover:text-purple-300 font-bold text-sm transition-colors">
+              <MdChatBubbleOutline size={18} /> Give your Feedback
             </Link>
 
             <a href="https://buymeacoffee.com/rlokin222" target="_blank" rel="noreferrer" className="flex items-center gap-2 bg-secondary/10 hover:bg-secondary/20 text-secondary border border-secondary/20 px-4 py-1.5 rounded-full font-bold text-xs transition-all"><FaCoffee size={14} /> Support</a>

@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
 import WelcomeModal from './components/WelcomeModal';
 import CacheProvider from './contexts/CacheContext';
+import BottomNav from './components/BottomNav';
 
 // --- IMPORTS DINÂMICOS ---
 const Home = lazy(() => import('./pages/Home'));
@@ -33,6 +34,7 @@ const Subscription = lazy(() => import('./pages/Subscription'));
 const Settings = lazy(() => import('./pages/Settings'));
 const EscreverHistoriaInterativa = lazy(() => import('./pages/EscreverHistoriaInterativa'));
 const LerHistoriaInterativa = lazy(() => import('./pages/LerHistoriaInterativa'));
+const Feedback = lazy(() => import('./pages/Feedback'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-[#121212]">
@@ -75,10 +77,12 @@ function App() {
                 <Route path="/escrever-historia-interativa" element={<EscreverHistoriaInterativa />} />
                 <Route path="/escrever-historia-interativa/:id" element={<EscreverHistoriaInterativa />} />
                 <Route path="/historia-interativa/:id" element={<LerHistoriaInterativa />} />
+                <Route path="/feedback" element={<Feedback />} />
               </Routes>
             </Suspense>
           </main>
           <Footer />
+          <BottomNav />
         </BrowserRouter>
       </CacheProvider>
     </AuthProvider >

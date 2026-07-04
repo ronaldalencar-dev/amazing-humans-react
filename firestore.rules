@@ -206,5 +206,15 @@ service cloud.firestore {
       // Apenas autor ou admin podem atualizar/deletar
       allow update, delete: if isOwner('autorId') || isAdmin();
     }
+
+    // ==========================================================
+    // 10. FEEDBACK
+    // ==========================================================
+    match /feedback/{docId} {
+      // Como pedido, vamos permitir criação. Se quiser restringir ao backend apenas, mude.
+      // A UI impedirá não logados, mas aqui garantimos que precisam estar logados para escrever no bd.
+      allow create: if isLoggedIn();
+      allow read, update, delete: if isAdmin();
+    }
   }
 }

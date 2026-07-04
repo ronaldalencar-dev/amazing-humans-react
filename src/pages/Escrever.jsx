@@ -449,7 +449,7 @@ export default function Escrever() {
                                     <div>
                                         <h4 className="text-purple-400 text-sm font-bold mb-1">Bulk Import Chapters</h4>
                                         <p className="text-gray-400 text-xs mb-2">
-                                            Upload a <b>.docx (Word)</b> file containing multiple chapters.
+                                            Upload a <b>.docx (Word)</b> or <b>.pdf</b> file containing multiple chapters.
                                             The system will automatically detect chapters like "Chapter 1", "Capítulo 5", etc.
                                             You will be able to review and edit them before publishing.
                                         </p>
@@ -459,7 +459,7 @@ export default function Escrever() {
                                     <label htmlFor="bulk-import" className="cursor-pointer bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-lg flex items-center gap-2">
                                         <MdFileUpload /> {importFile ? "Change File" : "Select File"}
                                     </label>
-                                    <input id="bulk-import" type="file" onChange={handleScanFile} className="hidden" accept=".docx,.doc" />
+                                    <input id="bulk-import" type="file" onChange={handleScanFile} className="hidden" accept=".docx,.doc,.pdf" />
                                     {importFile && (
                                         <div className="flex items-center gap-2 bg-purple-500/20 px-2 py-1 rounded text-[10px] text-purple-200">
                                             <span>{importFile.name}</span>

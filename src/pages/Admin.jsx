@@ -18,9 +18,10 @@ export default function Admin() {
     const { user, isAdmin, loadingAuth } = useContext(AuthContext);
     const navigate = useNavigate();
 
-    const [activeTab, setActiveTab] = useState('reports'); // reports, users
+    const [activeTab, setActiveTab] = useState('reports'); // reports, users, feedback
     const [reports, setReports] = useState([]);
-    const [stats, setStats] = useState({ users: 0, books: 0, reports: 0 });
+    const [feedbacks, setFeedbacks] = useState([]);
+    const [stats, setStats] = useState({ users: 0, books: 0, reports: 0, feedbacks: 0 });
     const [loading, setLoading] = useState(true);
 
     // States para User Management
@@ -55,6 +56,13 @@ export default function Admin() {
             snapReports.forEach(d => listaReports.push({ id: d.id, ...d.data() }));
             setReports(listaReports);
 
+            // 1.5 Carregar Feedbacks
+            const qFeedbacks = query(collection(db, "feedback"), orderBy("timestamp", "desc"));
+            const snapFeedbacks = await getDocs(qFeedbacks);
+            let listaFeedbacks = [];
+            snapFeedbacks.forEach(d => listaFeedbacks.push({ id: d.id, ...d.data() }));
+            setFeedbacks(listaFeedbacks);
+
             // 2. Carregar Estatísticas (Counts)
             const collUsers = collection(db, "usuarios");
             const collBooks = collection(db, "obras");
@@ -64,7 +72,8 @@ export default function Admin() {
             setStats({
                 users: snapUsers.data().count,
                 books: snapBooks.data().count,
-                reports: snapReports.size
+                reports: snapReports.size,
+                feedbacks: snapFeedbacks.size
             });
 
         } catch (error) {
@@ -97,6 +106,25 @@ export default function Admin() {
             setReports(reports.map(r => r.id === reportId ? { ...r, status: 'dismissed' } : r));
             toast.success("Report dismissed.");
         } catch (error) { toast.error("Error updating report."); }
+    }
+
+    // --- AÇÕES DE FEEDBACK ---
+
+    async function handleDismissFeedback(feedbackId) {
+        try {
+            await updateDoc(doc(db, "feedback", feedbackId), { status: 'resolved' });
+            setFeedbacks(feedbacks.map(f => f.id === feedbackId ? { ...f, status: 'resolved' } : f));
+            toast.success("Feedback marked as resolved.");
+        } catch (error) { toast.error("Error updating feedback."); }
+    }
+
+    async function handleDeleteFeedback(feedbackId) {
+        if (!window.confirm("Delete this feedback?")) return;
+        try {
+            await deleteDoc(doc(db, "feedback", feedbackId));
+            setFeedbacks(feedbacks.filter(f => f.id !== feedbackId));
+            toast.success("Feedback deleted.");
+        } catch (error) { toast.error("Error deleting feedback."); }
     }
 
     // --- AÇÕES DE USUÁRIOS ---
@@ -339,6 +367,10 @@ export default function Admin() {
                         <span className="block text-xl font-bold text-red-400">{stats.reports}</span>
                         <span className="text-[10px] text-gray-500 uppercase flex items-center justify-center gap-1"><MdWarning /> Reports</span>
                     </div>
+                    <div className="bg-[#1f1f1f] px-4 py-2 rounded-lg border border-[#333] text-center">
+                        <span className="block text-xl font-bold text-purple-400">{stats.feedbacks}</span>
+                        <span className="text-[10px] text-gray-500 uppercase flex items-center justify-center gap-1"><MdComment /> Feedback</span>
+                    </div>
                 </div>
             </div>
 
@@ -355,6 +387,12 @@ export default function Admin() {
                     className={`pb-3 px-2 text-sm font-bold uppercase tracking-wide transition-all ${activeTab === 'users' ? 'text-zinc-500 border-b-2 border-zinc-500' : 'text-gray-500 hover:text-white'}`}
                 >
                     <span>User Manager</span>
+                </button>
+                <button
+                    onClick={() => setActiveTab('feedback')}
+                    className={`pb-3 px-2 text-sm font-bold uppercase tracking-wide transition-all ${activeTab === 'feedback' ? 'text-purple-500 border-b-2 border-purple-500' : 'text-gray-500 hover:text-white'}`}
+                >
+                    <span>Feedback</span>
                 </button>
             </div>
 
@@ -386,6 +424,38 @@ export default function Admin() {
                                             <button onClick={() => handleDeleteContent(report)} className="btn-admin-action bg-red-900/30 text-red-500 border-red-500/30"><MdDelete /> Delete</button>
                                         </>
                                     )}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* --- ABA FEEDBACK --- */}
+            {activeTab === 'feedback' && (
+                <div className="grid gap-4">
+                    {feedbacks.length === 0 ? <p className="text-gray-500">No feedback found.</p> : feedbacks.map(fb => (
+                        <div key={fb.id} className={`p-4 rounded-xl border ${fb.status === 'pending' ? 'bg-[#1f1f1f] border-purple-500/30' : 'bg-[#151515] border-[#333] opacity-60'}`}>
+                            <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${fb.type === 'bug' ? 'bg-red-900 text-red-300' : fb.type === 'enhancement' ? 'bg-green-900 text-green-300' : 'bg-purple-900 text-purple-300'}`}>
+                                            {fb.type}
+                                        </span>
+                                        <span className="text-xs text-gray-500">{fb.timestamp ? new Date(fb.timestamp.seconds * 1000).toLocaleString() : ''}</span>
+                                        {fb.status !== 'pending' && <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-gray-700 text-gray-300">{fb.status}</span>}
+                                    </div>
+                                    <p className="text-gray-300 text-sm mt-1 bg-black/20 p-3 rounded-lg">"{fb.message}"</p>
+                                    <p className="text-gray-500 text-xs mt-3 flex items-center gap-1">
+                                        <MdPerson /> {fb.userName || 'Unknown'} ({fb.userEmail || 'No email'}) - ID: {fb.userId}
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-col gap-2 ml-4">
+                                    {fb.status === 'pending' && (
+                                        <button onClick={() => handleDismissFeedback(fb.id)} className="btn-admin-action bg-green-900/30 text-green-500 border-green-500/30"><MdCheck /> Resolve</button>
+                                    )}
+                                    <button onClick={() => handleDeleteFeedback(fb.id)} className="btn-admin-action bg-red-900/30 text-red-500 border-red-500/30"><MdDelete /> Delete</button>
                                 </div>
                             </div>
                         </div>

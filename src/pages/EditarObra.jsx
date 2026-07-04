@@ -57,6 +57,9 @@ export default function EditarObra() {
   const [importFile, setImportFile] = useState(null);
   const [importing, setImporting] = useState(false);
 
+  // Bulk Delete State
+  const [selectedChapters, setSelectedChapters] = useState([]);
+
   useEffect(() => {
     async function loadDados() {
       if (!user?.uid) return; // Garante que tem usuário antes de buscar
@@ -198,7 +201,13 @@ export default function EditarObra() {
           views: 0
         };
         batch.set(newCapRef, capData);
-        newCaps.push({ id: newCapRef.id, ...capData });
+        
+        // Simula o formato de Timestamp do Firestore para o estado local renderizar corretamente
+        newCaps.push({ 
+          id: newCapRef.id, 
+          ...capData, 
+          data: { seconds: Math.floor(now.getTime() / 1000), nanoseconds: 0 } 
+        });
       });
 
       await batch.commit();
@@ -229,12 +238,69 @@ export default function EditarObra() {
     const toastId = toast.loading("Deleting chapter...");
     try {
       await deleteDoc(doc(db, "capitulos", capId));
+      
+      // Update book total count
+      await updateDoc(doc(db, "obras", id), {
+        totalChapters: increment(-1),
+        lastUpdated: serverTimestamp()
+      });
+
       // Atualiza a lista local removendo o item deletado
       setCapitulos(prev => prev.filter(c => c.id !== capId));
+      setSelectedChapters(prev => prev.filter(id => id !== capId));
       toast.success("Chapter deleted", { id: toastId });
     } catch (error) {
       console.error("Error deleting chapter:", error);
       toast.error("Failed to delete", { id: toastId });
+    }
+  }
+
+  const toggleSelectChapter = (capId) => {
+    setSelectedChapters(prev => 
+      prev.includes(capId) ? prev.filter(id => id !== capId) : [...prev, capId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedChapters.length === capitulos.length) {
+      setSelectedChapters([]);
+    } else {
+      setSelectedChapters(capitulos.map(c => c.id));
+    }
+  };
+
+  async function handleBulkDelete() {
+    if (selectedChapters.length === 0) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedChapters.length} selected chapters? This action cannot be undone.`)) return;
+
+    const toastId = toast.loading(`Deleting ${selectedChapters.length} chapters...`);
+    setSaving(true);
+    try {
+      // Create chunks of 500 for Firestore batch limits
+      const chunkSize = 500;
+      for (let i = 0; i < selectedChapters.length; i += chunkSize) {
+        const chunk = selectedChapters.slice(i, i + chunkSize);
+        const batch = writeBatch(db);
+        chunk.forEach(capId => {
+          batch.delete(doc(db, "capitulos", capId));
+        });
+        await batch.commit();
+      }
+
+      // Update total chapters in book doc
+      await updateDoc(doc(db, "obras", id), {
+        totalChapters: increment(-selectedChapters.length),
+        lastUpdated: serverTimestamp()
+      });
+
+      setCapitulos(prev => prev.filter(c => !selectedChapters.includes(c.id)));
+      toast.success(`${selectedChapters.length} chapters deleted!`, { id: toastId });
+      setSelectedChapters([]);
+    } catch (error) {
+      console.error("Error in bulk delete:", error);
+      toast.error("Failed to delete chapters.", { id: toastId });
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -382,10 +448,24 @@ export default function EditarObra() {
         <div className="lg:col-span-2">
           <div className="bg-[#1f1f1f] border border-[#333] rounded-xl overflow-hidden shadow-lg flex flex-col h-full max-h-[800px]">
             <div className="p-4 border-b border-[#333] flex justify-between items-center bg-[#252525]">
-              <h3 className="text-white font-bold flex items-center gap-2">
-                Chapters <span className="bg-[#333] text-gray-400 text-xs px-2 py-0.5 rounded-full">{capitulos.length}</span>
-              </h3>
+              <div className="flex items-center gap-3">
+                <input 
+                  type="checkbox" 
+                  checked={capitulos.length > 0 && selectedChapters.length === capitulos.length}
+                  onChange={toggleSelectAll}
+                  className="w-4 h-4 cursor-pointer accent-red-500"
+                  title="Select All"
+                />
+                <h3 className="text-white font-bold flex items-center gap-2">
+                  Chapters <span className="bg-[#333] text-gray-400 text-xs px-2 py-0.5 rounded-full">{capitulos.length}</span>
+                </h3>
+              </div>
               <div className="flex gap-2">
+                {selectedChapters.length > 0 && (
+                  <button onClick={handleBulkDelete} disabled={saving} className="text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-lg font-bold flex items-center gap-1 transition-colors shadow-lg shadow-red-900/20">
+                    <MdDelete size={16} /> Delete ({selectedChapters.length})
+                  </button>
+                )}
                 <PremiumLock
                   user={user}
                   feature="PDF/Word Import"
@@ -436,11 +516,19 @@ export default function EditarObra() {
                   <div className="space-y-1">
                     {scheduledChapters.map((cap) => (
                       <div key={cap.id} className="p-3 rounded-lg bg-[#252525] hover:bg-[#2a2a2a] flex justify-between items-center group transition border border-zinc-500/20 hover:border-zinc-500/40">
-                        <div>
-                          <p className="text-gray-200 font-medium text-sm group-hover:text-zinc-400 transition-colors">{cap.titulo}</p>
-                          <span className="text-[10px] text-zinc-400 flex items-center gap-1 mt-0.5">
-                            Scheduled: {cap.data ? new Date(cap.data.seconds * 1000).toLocaleString() : '?'}
-                          </span>
+                        <div className="flex items-center gap-3">
+                          <input 
+                            type="checkbox" 
+                            checked={selectedChapters.includes(cap.id)}
+                            onChange={() => toggleSelectChapter(cap.id)}
+                            className="w-4 h-4 cursor-pointer accent-red-500 shrink-0"
+                          />
+                          <div>
+                            <p className="text-gray-200 font-medium text-sm group-hover:text-zinc-400 transition-colors">{cap.titulo}</p>
+                            <span className="text-[10px] text-zinc-400 flex items-center gap-1 mt-0.5">
+                              Scheduled: {cap.data ? new Date(cap.data.seconds * 1000).toLocaleString() : '?'}
+                            </span>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <Link to={`/editar-capitulo/${cap.id}`} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"><MdEdit size={16} /></Link>
@@ -461,9 +549,17 @@ export default function EditarObra() {
                   <div className="space-y-1">
                     {draftChapters.map((cap) => (
                       <div key={cap.id} className="p-3 rounded-lg bg-[#252525] hover:bg-[#2a2a2a] flex justify-between items-center group transition border border-yellow-500/20 hover:border-yellow-500/40">
-                        <div>
-                          <p className="text-gray-200 font-medium text-sm group-hover:text-yellow-400 transition-colors">{cap.titulo}</p>
-                          <span className="text-[10px] text-yellow-500/80 mt-0.5 block">Not Published</span>
+                        <div className="flex items-center gap-3">
+                          <input 
+                            type="checkbox" 
+                            checked={selectedChapters.includes(cap.id)}
+                            onChange={() => toggleSelectChapter(cap.id)}
+                            className="w-4 h-4 cursor-pointer accent-red-500 shrink-0"
+                          />
+                          <div>
+                            <p className="text-gray-200 font-medium text-sm group-hover:text-yellow-400 transition-colors">{cap.titulo}</p>
+                            <span className="text-[10px] text-yellow-500/80 mt-0.5 block">Not Published</span>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <Link to={`/editar-capitulo/${cap.id}`} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"><MdEdit size={16} /></Link>
@@ -489,6 +585,12 @@ export default function EditarObra() {
                     {publishedChapters.map((cap, index) => (
                       <div key={cap.id} className="p-3 rounded-lg hover:bg-[#2a2a2a] flex justify-between items-center group transition border border-transparent hover:border-[#333]">
                         <div className="flex items-center gap-4">
+                          <input 
+                            type="checkbox" 
+                            checked={selectedChapters.includes(cap.id)}
+                            onChange={() => toggleSelectChapter(cap.id)}
+                            className="w-4 h-4 cursor-pointer accent-red-500 shrink-0"
+                          />
                           <span className="text-gray-600 font-mono text-xs w-6 text-center">#{index + 1}</span>
                           <div>
                             <p className="text-gray-200 font-medium text-sm group-hover:text-green-400 transition-colors">{cap.titulo}</p>

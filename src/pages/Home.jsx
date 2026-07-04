@@ -1,4 +1,5 @@
-import React, { useState, useContext, forwardRef } from 'react';
+import React, { useState, useContext, forwardRef, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { db } from '../services/firebaseConnection';
 import { collection, query, where, orderBy, limit, getDocs, startAfter } from 'firebase/firestore';
@@ -32,6 +33,15 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('All');
   const [showFilter, setShowFilter] = useState(false);
+  const location = useLocation();
+  const searchInputRef = useRef(null);
+
+  useEffect(() => {
+    if (location.search.includes('searchFocus') && searchInputRef.current) {
+      searchInputRef.current.focus();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [location.search]);
 
   // 1. CARREGAR HISTÓRICO (Cache simples com useQuery)
   const { data: lastTags } = useQuery({
@@ -163,6 +173,7 @@ export default function Home() {
         <div className="flex w-full md:w-auto h-10 shadow-lg relative" onClick={(e) => e.stopPropagation()}>
           <div className="relative flex-1 md:w-72 group">
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search title..."
               value={searchTerm}
