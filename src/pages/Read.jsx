@@ -12,7 +12,7 @@ import {
     MdClose, MdFormatSize, MdTextFields, MdPhotoSizeSelectSmall, MdMenuBook,
     MdColorLens, MdAutorenew, MdVolumeUp, MdPause, MdStop, MdFlag, MdCheck
 } from 'react-icons/md';
-import Comentarios from '../components/Comentarios';
+import Comments from '../components/Comments';
 import AdBanner from '../components/AdBanner';
 import toast from 'react-hot-toast';
 import ReportModal from '../components/ReportModal';
@@ -38,7 +38,7 @@ const themes = {
     forest: { bg: 'bg-[#1a2e1a]', text: 'text-[#d1e7dd]', title: 'text-white', uiBg: 'bg-[#264226]', uiBorder: 'border-[#365e36]', label: 'Forest' }
 };
 
-export default function Ler() {
+export default function Read() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useContext(AuthContext);
@@ -337,7 +337,7 @@ export default function Ler() {
             {/* CONTAINER DO TEXTO */}
             <div className={`mx-auto px-6 pt-12 transition-all duration-300 ease-in-out ${settings.widthClass}`}>
 
-                <Link to={`/obra/${capitulo.obraId}`} className={`inline-flex items-center gap-2 mb-8 font-medium transition-colors ${currentTheme.text} hover:text-zinc-500 opacity-70 hover:opacity-100`}>
+                <Link to={`/story/${capitulo.obraId}`} className={`inline-flex items-center gap-2 mb-8 font-medium transition-colors ${currentTheme.text} hover:text-zinc-500 opacity-70 hover:opacity-100`}>
                     <MdArrowBack /> Back to Book
                 </Link>
 
@@ -384,13 +384,13 @@ export default function Ler() {
                 {/* NAVEGAÇÃO */}
                 <div className={`flex justify-between items-center mt-8 pt-8 border-t ${currentTheme.uiBorder}`}>
                     {prevId ? (
-                        <Link to={`/ler/${prevId}`} className={`flex items-center gap-2 px-6 py-3 rounded-lg font-bold transition-all border ${currentTheme.uiBg} ${currentTheme.text} ${currentTheme.uiBorder} hover:border-zinc-500 hover:-translate-x-1`}>
+                        <Link to={`/read/${prevId}`} className={`flex items-center gap-2 px-6 py-3 rounded-lg font-bold transition-all border ${currentTheme.uiBg} ${currentTheme.text} ${currentTheme.uiBorder} hover:border-zinc-500 hover:-translate-x-1`}>
                             <MdNavigateBefore size={24} /> <span className="hidden sm:inline">Prev</span>
                         </Link>
                     ) : (<div className="w-24 opacity-0"></div>)}
 
                     <Link
-                        to={`/obra/${capitulo.obraId}`}
+                        to={`/story/${capitulo.obraId}`}
                         className={`flex flex-col items-center justify-center transition-colors group ${currentTheme.text} opacity-60 hover:opacity-100`}
                     >
                         <MdMenuBook size={28} className="group-hover:text-zinc-500 transition-colors mb-1" />
@@ -398,14 +398,14 @@ export default function Ler() {
                     </Link>
 
                     {nextId ? (
-                        <Link to={`/ler/${nextId}`} className="flex items-center gap-2 bg-gradient-to-r from-zinc-600 to-zinc-500 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg shadow-zinc-500/20 hover:shadow-zinc-500/40 hover:-translate-y-1">
+                        <Link to={`/read/${nextId}`} className="flex items-center gap-2 bg-gradient-to-r from-zinc-600 to-zinc-500 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg shadow-zinc-500/20 hover:shadow-zinc-500/40 hover:-translate-y-1">
                             <span className="hidden sm:inline">Next</span> <MdNavigateNext size={24} />
                         </Link>
                     ) : (<div className={`${currentTheme.text} font-medium w-24 text-right opacity-50`}>End</div>)}
                 </div>
 
                 <div className="mt-20">
-                    <Comentarios
+                    <Comments
                         targetId={id}
                         targetType="capitulo"
                         targetAuthorId={capitulo.autorId}

@@ -417,7 +417,7 @@ export default function Admin() {
                                 </div>
 
                                 <div className="flex flex-col gap-2 ml-4">
-                                    <Link to={report.targetType === 'book' ? `/obra/${report.targetId}` : `/ler/${report.targetId}`} target="_blank" className="btn-admin-action bg-[#333] text-white"><MdOpenInNew /> View</Link>
+                                    <Link to={report.targetType === 'book' ? `/story/${report.targetId}` : `/read/${report.targetId}`} target="_blank" className="btn-admin-action bg-[#333] text-white"><MdOpenInNew /> View</Link>
                                     {report.status === 'pending' && (
                                         <>
                                             <button onClick={() => handleDismiss(report.id)} className="btn-admin-action bg-green-900/30 text-green-500 border-green-500/30"><MdCheck /> Dismiss</button>

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function SkeletonObra() {
+export default function SkeletonStory() {
   return (
     <div style={{ paddingBottom: 50 }}>
       

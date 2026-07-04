@@ -120,7 +120,7 @@ function SceneNode({ data, selected }) {
 const nodeTypes = { scene: SceneNode };
 
 // ─── MAIN EDITOR ─────────────────────────────────────────────────────────────
-export default function EscreverHistoriaInterativa() {
+export default function WriteInteractiveStory() {
     const { id: editId } = useParams();
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -339,7 +339,7 @@ export default function EscreverHistoriaInterativa() {
                 payload.dataCriacao = serverTimestamp();
                 const ref = await addDoc(collection(db, 'historias_interativas'), payload);
                 toast.success(status === 'draft' ? 'Draft saved!' : 'Published!', { id: toastId });
-                navigate(`/escrever-historia-interativa/${ref.id}`, { replace: true });
+                navigate(`/write-interactive-story/${ref.id}`, { replace: true });
             }
         } catch (err) {
             console.error(err);
@@ -397,7 +397,7 @@ export default function EscreverHistoriaInterativa() {
                 <div className="w-px bg-white/10 h-8" />
 
                 <button
-                    onClick={() => editId ? window.open(`/historia-interativa/${editId}`, '_blank') : toast('Save first to preview!')}
+                    onClick={() => editId ? window.open(`/interactive-story/${editId}`, '_blank') : toast('Save first to preview!')}
                     disabled={!editId}
                     className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 px-4 py-2 rounded-lg text-sm font-bold transition-all disabled:opacity-40"
                 >

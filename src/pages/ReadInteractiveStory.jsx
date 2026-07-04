@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import { MdArrowBack, MdAutorenew, MdMenuBook } from 'react-icons/md';
 import { FiGitBranch } from 'react-icons/fi';
 
-// Reuse same theme system as Ler.jsx
+// Reuse same theme system as Read.jsx
 const themes = {
     dark: { bg: 'bg-[#0F0F0F]', text: 'text-gray-300', title: 'text-gray-100', uiBg: 'bg-[#18181b]', uiBorder: 'border-[#27272a]', label: 'Dark' },
     light: { bg: 'bg-[#f8f9fa]', text: 'text-gray-800', title: 'text-gray-900', uiBg: 'bg-white', uiBorder: 'border-gray-200', label: 'Light' },
@@ -17,7 +17,7 @@ const themes = {
     forest: { bg: 'bg-[#1a2e1a]', text: 'text-[#d1e7dd]', title: 'text-white', uiBg: 'bg-[#264226]', uiBorder: 'border-[#365e36]', label: 'Forest' },
 };
 
-export default function LerHistoriaInterativa() {
+export default function ReadInteractiveStory() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useContext(AuthContext);
@@ -29,7 +29,7 @@ export default function LerHistoriaInterativa() {
     const [loading, setLoading] = useState(true);
     const [animating, setAnimating] = useState(false);
 
-    // Load reader settings from localStorage (same key as Ler.jsx)
+    // Load reader settings from localStorage (same key as Read.jsx)
     const [settings] = useState(() => {
         try {
             const saved = localStorage.getItem('ah_reader_settings');

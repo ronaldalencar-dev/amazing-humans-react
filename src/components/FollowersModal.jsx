@@ -65,7 +65,7 @@ export default function FollowersModal({ userId, type, onClose }) {
                     ) : (
                         <div className="flex flex-col gap-3">
                             {users.map(u => (
-                                <Link to={`/usuario/${u.id}`} key={u.id} onClick={onClose} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition border border-transparent hover:border-white/5">
+                                <Link to={`/user/${u.id}`} key={u.id} onClick={onClose} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg transition border border-transparent hover:border-white/5">
                                     <img src={u.foto || `https://ui-avatars.com/api/?name=${u.nome}`} className="w-10 h-10 rounded-full bg-black/50 object-cover" alt={u.nome} />
                                     <div className="flex-1">
                                         <p className="text-white font-bold text-sm">{u.nome}</p>

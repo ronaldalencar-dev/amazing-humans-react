@@ -23,7 +23,7 @@ const ReplyItem = ({ dados, user, handleDelete, handleResponderClick, styles }) 
 
     return (
         <div className={`flex gap-3 mb-3 pl-4 border-l-2 ${styles.border} group`}>
-            <Link to={`/usuario/${dados.autorId}`} className="shrink-0">
+            <Link to={`/user/${dados.autorId}`} className="shrink-0">
                 <img
                     src={dados.autorFoto || getFallbackAvatar(dados.autorNome)}
                     alt="user" className="w-6 h-6 rounded-full object-cover"
@@ -76,7 +76,7 @@ const CommentThread = ({
 
     return (
         <div className={`flex gap-4 mb-6 p-4 rounded-xl border ${styles.cardBg} ${styles.border}`}>
-            <Link to={`/usuario/${dados.autorId}`} className="shrink-0">
+            <Link to={`/user/${dados.autorId}`} className="shrink-0">
                 <img
                     src={dados.autorFoto || getFallbackAvatar(dados.autorNome)}
                     alt="user" className={`w-10 h-10 rounded-full object-cover border ${styles.border}`}
@@ -165,7 +165,7 @@ const CommentThread = ({
     );
 };
 
-export default function Comentarios({ targetId, targetType = 'capitulo', targetAuthorId, targetTitle, theme = null }) {
+export default function Comments({ targetId, targetType = 'capitulo', targetAuthorId, targetTitle, theme = null }) {
     const { user } = useContext(AuthContext);
     const [comentarios, setComentarios] = useState([]);
     const [novoTexto, setNovoTexto] = useState('');
@@ -269,7 +269,7 @@ export default function Comentarios({ targetId, targetType = 'capitulo', targetA
             }
             if (paraId && paraId !== user.uid) {
                 try {
-                    await addDoc(collection(db, "notificacoes"), { paraId: paraId, mensagem: mensagem, tipo: 'comment', linkDestino: `/ler/${targetId}`, lida: false, data: serverTimestamp() });
+                    await addDoc(collection(db, "notificacoes"), { paraId: paraId, mensagem: mensagem, tipo: 'comment', linkDestino: `/read/${targetId}`, lida: false, data: serverTimestamp() });
                 } catch (e) { }
             }
 

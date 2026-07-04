@@ -11,8 +11,8 @@ import {
     MdInfoOutline, MdVisibility, MdList, MdFlag, MdVerified, MdNavigateNext, MdNavigateBefore
 } from 'react-icons/md';
 import { FaPatreon } from 'react-icons/fa';
-import Recomendacoes from '../components/Recomendacoes';
-import SkeletonObra from '../components/SkeletonObra';
+import Recommendations from '../components/Recommendations';
+import SkeletonStory from '../components/SkeletonStory';
 import Reviews from '../components/Reviews';
 import RatingWidget from '../components/RatingWidget';
 import SmartImage from '../components/SmartImage';
@@ -25,7 +25,7 @@ import ReportModal from '../components/ReportModal';
 // Constantes
 const CHAPTERS_PER_PAGE = 10;
 
-export default function Obra() {
+export default function Story() {
     const { id } = useParams();
     const { user } = useContext(AuthContext);
 
@@ -44,9 +44,10 @@ export default function Obra() {
     const [showReport, setShowReport] = useState(false);
     const [lastReadId, setLastReadId] = useState(null);
     const [showFullSynopsis, setShowFullSynopsis] = useState(false);
+    const [obraCollections, setObraCollections] = useState([]);
 
     // --- CARREGAMENTO PRINCIPAL ---
-    // --- REAL-TIME: Obra Listener ---
+    // --- REAL-TIME: Story Listener ---
     useEffect(() => {
         let unsubscribe;
 
@@ -203,7 +204,7 @@ export default function Obra() {
     const handleNextPage = () => fetchChapters(page + 1);
     const handlePrevPage = () => { if (page > 1) fetchChapters(page - 1); };
 
-    // --- EFEITO: Biblioteca ---
+    // --- EFEITO: Library ---
     useEffect(() => {
         async function checkLibrary() {
             if (!user?.uid || !id) return;
@@ -216,6 +217,23 @@ export default function Obra() {
         }
         checkLibrary();
     }, [id, user]);
+
+    // --- EFFECT: Buscar Coleções ---
+    useEffect(() => {
+        if (!id) return;
+        async function fetchCollections() {
+            try {
+                const q = query(collection(db, "colecoes"), where("obrasIds", "array-contains", id));
+                const snap = await getDocs(q);
+                let colList = [];
+                snap.forEach(doc => colList.push({ id: doc.id, ...doc.data() }));
+                setObraCollections(colList);
+            } catch (err) {
+                console.error("Erro ao buscar coleções:", err);
+            }
+        }
+        fetchCollections();
+    }, [id]);
 
     // --- TOGGLE LIBRARY ---
     async function toggleBiblioteca() {
@@ -242,7 +260,7 @@ export default function Obra() {
     const isAuthor = user?.uid === obra?.autorId;
     const cleanSinopse = React.useMemo(() => obra?.sinopse ? obra.sinopse.replace(/<[^>]*>?/gm, '').substring(0, 160) + '...' : 'Read on Amazing Humans.', [obra?.sinopse]);
 
-    if (loading) return <SkeletonObra />;
+    if (loading) return <SkeletonStory />;
 
     if (!obra) return (
         <div className="min-h-screen flex items-center justify-center text-white">
@@ -290,7 +308,7 @@ export default function Obra() {
                         </div>
 
                         <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400 mb-6">
-                            <Link to={`/usuario/${obra.autorId}`} className="flex items-center gap-2 hover:text-primary transition-colors">
+                            <Link to={`/user/${obra.autorId}`} className="flex items-center gap-2 hover:text-primary transition-colors">
                                 <MdPerson /> {authorData?.nome || obra.autor || "Unknown"}
                                 {(authorData?.badges || obra.autorBadges)?.includes('pioneer') && <MdVerified className="text-yellow-400" />}
                             </Link>
@@ -301,6 +319,17 @@ export default function Obra() {
                         <div className="flex flex-wrap gap-2 mb-4">
                             {obra.categorias?.map((cat, i) => (<span key={i} className="px-3 py-1 bg-white/5 border border-white/10 rounded-md text-xs text-gray-300 font-bold uppercase">{cat}</span>))}
                         </div>
+                        
+                        {obraCollections.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-4">
+                                {obraCollections.map(col => (
+                                    <div key={col.id} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-md text-xs text-primary font-bold shadow-[0_0_10px_rgba(var(--primary-rgb),0.1)]">
+                                        <MdLibraryBooks size={14} />
+                                        Collection: {col.nome}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
 
                         <div className="bg-[#1f1f1f]/80 backdrop-blur-sm border border-white/5 rounded-xl mb-6 relative overflow-hidden flex flex-col">
                             <div className="absolute top-0 left-0 w-1 h-full bg-primary z-10"></div>
@@ -324,7 +353,7 @@ export default function Obra() {
 
                         <div className="flex flex-wrap gap-4 items-center">
                             <Link
-                                to={`/ler/${lastReadId || (capitulos.length > 0 ? capitulos[0].id : '')}`}
+                                to={`/read/${lastReadId || (capitulos.length > 0 ? capitulos[0].id : '')}`}
                                 className={`btn-primary px-8 py-3 rounded-full text-lg shadow-xl hover:scale-105 transition-transform flex items-center gap-2 ${(!capitulos.length && !lastReadId) ? 'opacity-50 pointer-events-none' : ''}`}
                             >
                                 <MdMenuBook /> {lastReadId ? "Continue Reading" : "Read Now"}
@@ -345,7 +374,7 @@ export default function Obra() {
                                 </a>
                             )}
 
-                            {isAuthor && <Link to={`/editar-obra/${obra.id}`} className="ml-auto hidden md:flex items-center gap-2 text-gray-400 hover:text-white px-4 py-2 hover:bg-white/5 rounded-lg transition"><MdEdit /> Edit</Link>}
+                            {isAuthor && <Link to={`/edit-story/${obra.id}`} className="ml-auto hidden md:flex items-center gap-2 text-gray-400 hover:text-white px-4 py-2 hover:bg-white/5 rounded-lg transition"><MdEdit /> Edit</Link>}
                         </div>
                     </div>
                 </div>
@@ -375,7 +404,7 @@ export default function Obra() {
                             {capitulos.length > 0 ? capitulos.map((cap, i) => {
                                 const absoluteIndex = ((page - 1) * CHAPTERS_PER_PAGE) + (i + 1);
                                 return (
-                                    <Link to={`/ler/${cap.id}`} key={cap.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition group">
+                                    <Link to={`/read/${cap.id}`} key={cap.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition group">
                                         <div className="flex items-center gap-4">
                                             <span className="text-xs w-8 text-center text-gray-600">#{absoluteIndex}</span>
                                             <div className="flex items-center gap-2">
@@ -431,7 +460,7 @@ export default function Obra() {
                 )}
 
                 <Reviews obraId={id} obraTitulo={obra.titulo} autorId={obra.autorId} />
-                {obra.categorias && <div className="mt-20"><Recomendacoes tags={obra.categorias} currentId={id} title="Similar Stories" /></div>}
+                {obra.categorias && <div className="mt-20"><Recommendations tags={obra.categorias} currentId={id} title="Similar Stories" /></div>}
             </div>
         </div>
     );

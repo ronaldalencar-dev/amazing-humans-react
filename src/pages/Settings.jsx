@@ -59,7 +59,7 @@ export default function Settings() {
                 {/* Cabeçalho */}
                 <div className="flex items-center gap-4 mb-8">
                     <button 
-                        onClick={() => navigate('/perfil')} 
+                        onClick={() => navigate('/profile')} 
                         className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-white transition-colors"
                         title="Back to Profile"
                     >

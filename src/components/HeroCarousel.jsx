@@ -98,10 +98,10 @@ export default function HeroCarousel() {
           </p>
 
           <div className="flex gap-4">
-            <Link to={`/obra/${item.id}`} className="btn-primary px-8 py-3 rounded-full font-bold flex items-center gap-2 shadow-lg transition-all transform hover:scale-105">
+            <Link to={`/story/${item.id}`} className="btn-primary px-8 py-3 rounded-full font-bold flex items-center gap-2 shadow-lg transition-all transform hover:scale-105">
               <MdPlayArrow size={24} /> <span>Read Now</span>
             </Link>
-            <Link to={`/obra/${item.id}`} className="bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all">
+            <Link to={`/story/${item.id}`} className="bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all">
               <MdInfoOutline size={20} /> <span>Details</span>
             </Link>
           </div>

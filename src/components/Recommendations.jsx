@@ -4,7 +4,7 @@ import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 import StoryCard from './StoryCard';
 import { MdChevronLeft, MdChevronRight, MdAutoAwesome } from 'react-icons/md';
 
-export default function Recomendacoes({ tags, currentId = null, title = "Recommended for You" }) {
+export default function Recommendations({ tags, currentId = null, title = "Recommended for You" }) {
   const [livros, setLivros] = useState([]);
   const scrollRef = useRef(null);
 

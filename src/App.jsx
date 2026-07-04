@@ -13,27 +13,27 @@ import BottomNav from './components/BottomNav';
 // --- IMPORTS DINÂMICOS ---
 const Home = lazy(() => import('./pages/Home'));
 const Login = lazy(() => import('./pages/Login'));
-const Obra = lazy(() => import('./pages/Obra'));
-const Ler = lazy(() => import('./pages/Ler'));
+const Story = lazy(() => import('./pages/Story'));
+const Read = lazy(() => import('./pages/Read'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Escrever = lazy(() => import('./pages/Escrever'));
+const Write = lazy(() => import('./pages/Write'));
 
-const Perfil = lazy(() => import('./pages/Perfil'));
-const PerfilPublico = lazy(() => import('./pages/PerfilPublico'));
-const Biblioteca = lazy(() => import('./pages/Biblioteca'));
-const Historico = lazy(() => import('./pages/Historico'));
-const Notificacoes = lazy(() => import('./pages/Notificacoes'));
+const Profile = lazy(() => import('./pages/Profile'));
+const PublicProfile = lazy(() => import('./pages/PublicProfile'));
+const Library = lazy(() => import('./pages/Library'));
+const History = lazy(() => import('./pages/History'));
+const Notifications = lazy(() => import('./pages/Notifications'));
 const HowItWorks = lazy(() => import('./pages/HowItWorks'));
 const Admin = lazy(() => import('./pages/Admin'));
-const EditarObra = lazy(() => import('./pages/EditarObra'));
-const EditarCapitulo = lazy(() => import('./pages/EditarCapitulo'));
+const EditStory = lazy(() => import('./pages/EditStory'));
+const EditChapter = lazy(() => import('./pages/EditChapter'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Privacy = lazy(() => import('./pages/Privacy'));
-const Manutencao = lazy(() => import('./pages/Manutencao'));
+const Maintenance = lazy(() => import('./pages/Maintenance'));
 const Subscription = lazy(() => import('./pages/Subscription'));
 const Settings = lazy(() => import('./pages/Settings'));
-const EscreverHistoriaInterativa = lazy(() => import('./pages/EscreverHistoriaInterativa'));
-const LerHistoriaInterativa = lazy(() => import('./pages/LerHistoriaInterativa'));
+const WriteInteractiveStory = lazy(() => import('./pages/WriteInteractiveStory'));
+const ReadInteractiveStory = lazy(() => import('./pages/ReadInteractiveStory'));
 const Feedback = lazy(() => import('./pages/Feedback'));
 
 const LoadingFallback = () => (
@@ -56,27 +56,27 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/obra/:id" element={<Obra />} />
-                <Route path="/ler/:id" element={<Ler />} />
+                <Route path="/story/:id" element={<Story />} />
+                <Route path="/read/:id" element={<Read />} />
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/escrever" element={<Escrever />} />
+                <Route path="/write" element={<Write />} />
 
-                <Route path="/perfil" element={<Perfil />} />
-                <Route path="/usuario/:id" element={<PerfilPublico />} />
-                <Route path="/biblioteca" element={<Biblioteca />} />
-                <Route path="/historico" element={<Historico />} />
-                <Route path="/notificacoes" element={<Notificacoes />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/user/:id" element={<PublicProfile />} />
+                <Route path="/library" element={<Library />} />
+                <Route path="/history" element={<History />} />
+                <Route path="/notifications" element={<Notifications />} />
                 <Route path="/how-it-works" element={<HowItWorks />} />
                 <Route path="/admin" element={<Admin />} />
-                <Route path="/editar-obra/:id" element={<EditarObra />} />
-                <Route path="/editar-capitulo/:id" element={<EditarCapitulo />} />
+                <Route path="/edit-story/:id" element={<EditStory />} />
+                <Route path="/edit-chapter/:id" element={<EditChapter />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/privacy" element={<Privacy />} />
                 <Route path="/subscription" element={<Subscription />} />
                 <Route path="/settings" element={<Settings />} />
-                <Route path="/escrever-historia-interativa" element={<EscreverHistoriaInterativa />} />
-                <Route path="/escrever-historia-interativa/:id" element={<EscreverHistoriaInterativa />} />
-                <Route path="/historia-interativa/:id" element={<LerHistoriaInterativa />} />
+                <Route path="/write-interactive-story" element={<WriteInteractiveStory />} />
+                <Route path="/write-interactive-story/:id" element={<WriteInteractiveStory />} />
+                <Route path="/interactive-story/:id" element={<ReadInteractiveStory />} />
                 <Route path="/feedback" element={<Feedback />} />
               </Routes>
             </Suspense>

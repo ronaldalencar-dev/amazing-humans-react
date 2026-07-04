@@ -24,7 +24,7 @@ const editorConfig = {
   invalid_elements: 'img'
 };
 
-export default function EditarCapitulo() {
+export default function EditChapter() {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -120,7 +120,7 @@ export default function EditarCapitulo() {
 
       <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
         <div className="flex items-center gap-4">
-          <Link to={`/editar-obra/${obraId}`} className="text-gray-400 hover:text-white transition flex items-center gap-1">
+          <Link to={`/edit-story/${obraId}`} className="text-gray-400 hover:text-white transition flex items-center gap-1">
             <MdArrowBack size={20} /> Back
           </Link>
           <h1 className="text-2xl font-bold text-white">Edit Chapter</h1>
@@ -128,7 +128,7 @@ export default function EditarCapitulo() {
 
         <div className="flex gap-2">
           {/* Botão Cancelar */}
-          <button onClick={() => navigate(`/editar-obra/${obraId}`)} className="bg-transparent border border-[#444] hover:bg-[#333] text-gray-300 font-bold py-2 px-4 rounded-lg transition-all flex items-center gap-2">
+          <button onClick={() => navigate(`/edit-story/${obraId}`)} className="bg-transparent border border-[#444] hover:bg-[#333] text-gray-300 font-bold py-2 px-4 rounded-lg transition-all flex items-center gap-2">
             <MdCancel size={18} /> Cancel
           </button>
 

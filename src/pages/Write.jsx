@@ -37,7 +37,7 @@ function countWords(htmlString) {
     return text.length === 0 ? 0 : text.split(' ').length;
 }
 
-export default function Escrever() {
+export default function Write() {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -258,9 +258,9 @@ export default function Escrever() {
 
                 // Redirect to the first chapter if available, otherwise book page
                 if (firstChapterId) {
-                    navigate(`/ler/${firstChapterId}`);
+                    navigate(`/read/${firstChapterId}`);
                 } else {
-                    navigate(`/obra/${idFinalObra}`);
+                    navigate(`/story/${idFinalObra}`);
                 }
 
             } catch (error) {
@@ -346,7 +346,7 @@ export default function Escrever() {
                 toast.success("Draft saved successfully!", { id: toastId });
                 // Stay on page or redirect? Maybe redirect to edit?
                 // For now, let's redirect to edit chapter so they can continue working
-                navigate(`/editar-capitulo/${capRef.id}`);
+                navigate(`/edit-chapter/${capRef.id}`);
             } else {
                 // ... existing success logic
                 let msg = "Published successfully!";
@@ -359,7 +359,7 @@ export default function Escrever() {
                     msg = `Scheduled for ${formattedDate}`;
                 }
                 toast.success(msg, { id: toastId });
-                navigate(`/ler/${capRef.id}`);
+                navigate(`/read/${capRef.id}`);
             }
 
         } catch (error) {
@@ -386,7 +386,7 @@ export default function Escrever() {
                 <button onClick={() => setModo('capitulo')} className={`px-6 py-2 rounded-md font-bold transition-all ${modo === 'capitulo' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>New Chapter Only</button>
                 <button
                     onClick={() => {
-                        navigate('/escrever-historia-interativa');
+                        navigate('/write-interactive-story');
                     }}
                     className="px-6 py-2 rounded-md font-bold transition-all text-gray-400 hover:text-white flex items-center gap-2"
                 >

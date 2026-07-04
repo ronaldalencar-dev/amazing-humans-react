@@ -15,7 +15,7 @@ const formatUrl = (url) => {
     return `https://${url}`;
 };
 
-export default function PerfilPublico() {
+export default function PublicProfile() {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
 
@@ -37,7 +37,7 @@ export default function PerfilPublico() {
                 const data = userDoc.data();
                 setPerfil({ id: userDoc.id, ...data });
 
-                // Lógica de verificação VIP para Perfil Público
+                // Lógica de verificação VIP para Profile Público
                 if(data.vipUntil) {
                     let vipDate = null;
                     try {

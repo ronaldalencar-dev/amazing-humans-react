@@ -37,7 +37,7 @@ const editorConfig = {
   invalid_elements: 'img'
 };
 
-export default function EditarObra() {
+export default function EditStory() {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -310,7 +310,7 @@ export default function EditarObra() {
 
     const toastId = toast.loading("Deleting...");
     try {
-      // 1. Deleta a Obra
+      // 1. Deleta a Story
       await deleteDoc(doc(db, "obras", id));
 
       // 2. Deleta os Capítulos
@@ -345,7 +345,7 @@ export default function EditarObra() {
           </Link>
           <h1 className="text-2xl font-bold text-white">Edit Book</h1>
         </div>
-        <Link to={`/obra/${id}`} className="bg-[#2a2a2a] hover:bg-[#333] text-gray-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors border border-white/10">
+        <Link to={`/story/${id}`} className="bg-[#2a2a2a] hover:bg-[#333] text-gray-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors border border-white/10">
           <MdVisibility /> View Public Page
         </Link>
       </div>
@@ -429,7 +429,7 @@ export default function EditarObra() {
             </div>
 
             <div className="flex gap-3 mb-6">
-              <Link to={`/obra/${id}`} className="flex-1 bg-transparent border border-[#444] text-gray-300 hover:bg-[#333] hover:text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all">
+              <Link to={`/story/${id}`} className="flex-1 bg-transparent border border-[#444] text-gray-300 hover:bg-[#333] hover:text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 transition-all">
                 <MdCancel size={18} /> Cancel
               </Link>
 
@@ -480,7 +480,7 @@ export default function EditarObra() {
                   }} className="hidden" accept=".pdf,.docx,.doc" />
                 </PremiumLock>
 
-                <Link to={`/escrever?obraId=${id}`} className="text-xs bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 transition-colors shadow-lg shadow-green-900/20">
+                <Link to={`/write?obraId=${id}`} className="text-xs bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 transition-colors shadow-lg shadow-green-900/20">
                   <MdAdd size={16} /> New Chapter
                 </Link>
               </div>
@@ -531,7 +531,7 @@ export default function EditarObra() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Link to={`/editar-capitulo/${cap.id}`} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"><MdEdit size={16} /></Link>
+                          <Link to={`/edit-chapter/${cap.id}`} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"><MdEdit size={16} /></Link>
                           <button onClick={() => handleDeleteChapter(cap.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"><MdDelete size={16} /></button>
                         </div>
                       </div>
@@ -562,7 +562,7 @@ export default function EditarObra() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Link to={`/editar-capitulo/${cap.id}`} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"><MdEdit size={16} /></Link>
+                          <Link to={`/edit-chapter/${cap.id}`} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"><MdEdit size={16} /></Link>
                           <button onClick={() => handleDeleteChapter(cap.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"><MdDelete size={16} /></button>
                         </div>
                       </div>
@@ -600,7 +600,7 @@ export default function EditarObra() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Link to={`/editar-capitulo/${cap.id}`} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"><MdEdit size={16} /></Link>
+                          <Link to={`/edit-chapter/${cap.id}`} className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"><MdEdit size={16} /></Link>
                           <button onClick={() => handleDeleteChapter(cap.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"><MdDelete size={16} /></button>
                         </div>
                       </div>

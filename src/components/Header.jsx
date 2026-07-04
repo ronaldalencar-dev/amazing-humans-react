@@ -116,7 +116,7 @@ export default function Header() {
               {isUserAdmin && <Link to="/admin" onClick={() => setShowDrawer(false)} className="drawer-link text-red-400 bg-red-500/10 border-red-500/20 mb-2 rounded-lg"><MdSecurity size={20} /> <span>Admin Panel</span></Link>}
 
               <Link to="/dashboard" onClick={() => setShowDrawer(false)} className="drawer-link"><MdEditNote size={20} /> <span>Dashboard</span></Link>
-              <Link to="/biblioteca" onClick={() => setShowDrawer(false)} className="drawer-link"><MdBookmarks size={20} /> <span>Library</span></Link>
+              <Link to="/library" onClick={() => setShowDrawer(false)} className="drawer-link"><MdBookmarks size={20} /> <span>Library</span></Link>
 
               <Link to="/feedback" onClick={(e) => { setShowDrawer(false); if (!signed) { e.preventDefault(); toast.error("You must be logged in to submit feedback."); } }} className="drawer-link text-purple-400"><MdChatBubbleOutline size={20} /> <span>Give your Feedback</span></Link>
 
@@ -149,7 +149,7 @@ export default function Header() {
 
           <div className="flex lg:hidden items-center gap-4">
             {signed && (
-              <Link to="/notificacoes" className={`relative transition-colors ${animateBell ? 'animate-bell' : 'text-gray-400 hover:text-white'}`}>
+              <Link to="/notifications" className={`relative transition-colors ${animateBell ? 'animate-bell' : 'text-gray-400 hover:text-white'}`}>
                 <MdNotifications size={24} />
                 {notifCount > 0 && (
                   <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0a0a0a] animate-bounce"></span>
@@ -175,7 +175,7 @@ export default function Header() {
             ) : (
               <div className="flex items-center gap-6 border-l border-white/10 pl-6">
 
-                <Link to="/notificacoes" className={`relative transition-colors ${animateBell ? 'animate-bell' : 'text-gray-400 hover:text-white'}`}>
+                <Link to="/notifications" className={`relative transition-colors ${animateBell ? 'animate-bell' : 'text-gray-400 hover:text-white'}`}>
                   <MdNotifications size={24} />
                   {notifCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#0a0a0a] animate-bounce"></span>
@@ -199,8 +199,8 @@ export default function Header() {
                       {isUserAdmin && <Link to="/admin" className="dropdown-item text-red-400 hover:bg-red-500/10"><MdSecurity className="text-red-400" /> <span>Admin Panel</span></Link>}
                       {/* <Link to="/subscription" className="dropdown-item"><span className="text-yellow-500">★</span> <span>Subscription</span></Link> */}
                       <Link to="/dashboard" className="dropdown-item"><MdEditNote className="text-green-400" /> <span>Dashboard</span></Link>
-                      <Link to="/perfil" className="dropdown-item"><MdPerson className="text-zinc-400" /> <span>Profile</span></Link>
-                      <Link to="/biblioteca" className="dropdown-item"><MdBookmarks className="text-purple-400" /> <span>Library</span></Link>
+                      <Link to="/profile" className="dropdown-item"><MdPerson className="text-zinc-400" /> <span>Profile</span></Link>
+                      <Link to="/library" className="dropdown-item"><MdBookmarks className="text-purple-400" /> <span>Library</span></Link>
                       <Link to="/settings" className="dropdown-item"><MdSettings className="text-gray-400" /> <span>Settings</span></Link>
 
                       <div className="h-px bg-white/5 my-1"></div>

@@ -10,7 +10,7 @@ import toast from 'react-hot-toast';
 
 const ITEMS_PER_PAGE = 20;
 
-export default function Historico() {
+export default function History() {
     const { user } = useContext(AuthContext);
     const queryClient = useQueryClient();
 
@@ -110,7 +110,7 @@ export default function Historico() {
             </div>
 
             <Link
-                to={`/ler/${item.lastChapterId}`}
+                to={`/read/${item.lastChapterId}`}
                 className="bg-[#2a2a2a] hover:bg-zinc-600 text-white p-3 rounded-full transition-all shadow-lg group-hover:scale-110"
                 title="Read Again"
             >

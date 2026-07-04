@@ -9,7 +9,7 @@ import { VirtuosoGrid } from 'react-virtuoso';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'; // <--- OTIMIZAÇÃO
 import StoryCard from '../components/StoryCard';
 import SkeletonCard from '../components/SkeletonCard';
-import Recomendacoes from '../components/Recomendacoes';
+import Recommendations from '../components/Recommendations';
 import AdBanner from '../components/AdBanner';
 import HeroCarousel from '../components/HeroCarousel';
 import { Helmet } from 'react-helmet-async';
@@ -207,7 +207,7 @@ export default function Home() {
         </div>
       </div>
 
-      {lastTags && lastTags.length > 0 && <div className="-mt-6 mb-12"><Recomendacoes tags={lastTags} title="" /></div>}
+      {lastTags && lastTags.length > 0 && <div className="-mt-6 mb-12"><Recommendations tags={lastTags} title="" /></div>}
       <AdBanner className="mb-10" />
 
       <div className="flex items-center gap-3 border-b border-white/10 pb-3 mb-6 mt-2">

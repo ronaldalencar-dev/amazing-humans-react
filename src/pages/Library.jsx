@@ -8,7 +8,7 @@ import { Virtuoso } from 'react-virtuoso';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
-export default function Biblioteca() {
+export default function Library() {
     const { user, loadingAuth } = useContext(AuthContext); // Importamos loadingAuth
     const [abaAtual, setAbaAtual] = useState('reading');
     const queryClient = useQueryClient();
@@ -132,13 +132,13 @@ export default function Biblioteca() {
             <button onClick={() => mutationFavorite.mutate(item)} className="absolute top-2 right-2 z-10 p-2 rounded-full bg-black/50 hover:bg-black/80 text-white transition-all opacity-0 group-hover:opacity-100">
                 {item.isFavorite ? <MdFavorite className="text-red-500" /> : <MdFavoriteBorder />}
             </button>
-            <Link to={`/obra/${item.obraId}`} className="sm:w-32 h-48 sm:h-auto shrink-0 relative bg-[#111]">
+            <Link to={`/story/${item.obraId}`} className="sm:w-32 h-48 sm:h-auto shrink-0 relative bg-[#111]">
                 <img src={item.capa || '/logo-ah.png'} loading="lazy" alt={item.tituloObra} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" onError={(e) => { e.target.onerror = null; e.target.src = '/logo-ah.png'; }} />
                 {item.isFavorite && <div className="absolute top-0 left-2 w-4 h-6 bg-red-600 shadow-lg clip-path-ribbon"></div>}
             </Link>
             <div className="flex-1 p-5 flex flex-col justify-between">
                 <div>
-                    <Link to={`/obra/${item.obraId}`}><h3 className="text-white font-bold text-lg leading-tight mb-1 group-hover:text-zinc-400 transition-colors">{item.tituloObra}</h3></Link>
+                    <Link to={`/story/${item.obraId}`}><h3 className="text-white font-bold text-lg leading-tight mb-1 group-hover:text-zinc-400 transition-colors">{item.tituloObra}</h3></Link>
                     <div className="mt-3">
                         <div className="flex justify-between items-center text-xs text-gray-400 mb-1 font-bold uppercase tracking-wide"><span>Progress</span><span className={item.progresso === 100 ? "text-green-500" : "text-zinc-400"}>{item.progresso}%</span></div>
                         <div className="w-full h-2 bg-[#2a2a2a] rounded-full overflow-hidden"><div className={`h-full transition-all duration-1000 ${item.progresso === 100 ? 'bg-green-600' : 'bg-zinc-600'}`} style={{ width: `${item.progresso}%` }}></div></div>
@@ -149,7 +149,7 @@ export default function Biblioteca() {
                     <select value={item.status || 'reading'} onChange={(e) => mutationStatus.mutate({ id: item.id, novoStatus: e.target.value })} className="bg-[#252525] text-gray-400 text-xs py-1.5 px-3 rounded-lg border border-[#444] outline-none cursor-pointer focus:border-zinc-500">
                         <option value="reading">Reading</option><option value="completed">Completed</option><option value="plan">Plan to Read</option><option value="remove">Remove</option>
                     </select>
-                    <Link to={item.ultimoCapituloId ? `/ler/${item.ultimoCapituloId}` : `/obra/${item.obraId}`} className={`px-5 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all ${item.progresso === 100 ? 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333]' : 'bg-zinc-600 hover:bg-zinc-500 text-white shadow-lg'}`}>
+                    <Link to={item.ultimoCapituloId ? `/read/${item.ultimoCapituloId}` : `/story/${item.obraId}`} className={`px-5 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all ${item.progresso === 100 ? 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333]' : 'bg-zinc-600 hover:bg-zinc-500 text-white shadow-lg'}`}>
                         <MdPlayArrow size={16} /> {item.ultimoCapituloId ? "Continue" : "Start"}
                     </Link>
                 </div>

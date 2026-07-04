@@ -31,8 +31,8 @@ export default function Footer() {
             <h4 className="text-white font-bold mb-4 uppercase text-sm tracking-wider">Platform</h4>
             <ul className="space-y-2 text-sm text-gray-400">
                 <li><Link to="/" onClick={handleScrollTop} className="hover:text-zinc-400 transition-colors">Home</Link></li>
-                <li><Link to="/biblioteca" onClick={handleScrollTop} className="hover:text-zinc-400 transition-colors">My Library</Link></li>
-                <li className="hidden md:block"><Link to="/escrever" onClick={handleScrollTop} className="hover:text-zinc-400 transition-colors">Start Writing</Link></li>
+                <li><Link to="/library" onClick={handleScrollTop} className="hover:text-zinc-400 transition-colors">My Library</Link></li>
+                <li className="hidden md:block"><Link to="/write" onClick={handleScrollTop} className="hover:text-zinc-400 transition-colors">Start Writing</Link></li>
                 <li><Link to="/terms" onClick={handleScrollTop} className="hover:text-zinc-400 transition-colors">Terms of Service</Link></li>
                 <li><Link to="/privacy" onClick={handleScrollTop} className="hover:text-zinc-400 transition-colors">Privacy Policy</Link></li>
                 <li><Link to="/how-it-works" onClick={handleScrollTop} className="hover:text-zinc-400 transition-colors">How it Works</Link></li>

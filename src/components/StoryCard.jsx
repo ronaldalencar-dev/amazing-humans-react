@@ -8,7 +8,7 @@ export default function StoryCard({ data }) {
   // O SmartImage já lida com o fallback da imagem, não precisamos da lógica manual aqui
 
   return (
-    <Link to={`/obra/${data.id}`} className="group flex flex-col w-full text-decoration-none relative" title={data.titulo}>
+    <Link to={`/story/${data.id}`} className="group flex flex-col w-full text-decoration-none relative" title={data.titulo}>
 
       {/* CAPA - Efeitos de hover melhorados */}
       <div className="relative w-full aspect-[2/3] overflow-hidden rounded-lg bg-[#222] shadow-lg group-hover:shadow-glow transition-all duration-500 border border-white/5">

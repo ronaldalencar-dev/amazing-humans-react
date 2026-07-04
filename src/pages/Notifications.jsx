@@ -35,7 +35,7 @@ const getStyleData = (tipo, lida) => {
     }
 };
 
-export default function Notificacoes() {
+export default function Notifications() {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
     const [notificacoes, setNotificacoes] = useState([]);

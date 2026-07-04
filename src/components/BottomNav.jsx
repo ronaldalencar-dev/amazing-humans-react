@@ -24,13 +24,13 @@ export default function BottomNav() {
         </Link>
 
         {signed && (
-          <Link to="/escrever" className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${location.pathname.includes('/escrever') ? 'text-primary' : 'text-gray-500 hover:text-white'}`}>
+          <Link to="/write" className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${location.pathname.includes('/write') ? 'text-primary' : 'text-gray-500 hover:text-white'}`}>
             <MdEditNote size={24} />
             <span className="text-[10px] font-bold">Write</span>
           </Link>
         )}
 
-        <Link to={signed ? "/perfil" : "/login"} className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${location.pathname.includes('/perfil') || location.pathname.includes('/login') ? 'text-primary' : 'text-gray-500 hover:text-white'}`}>
+        <Link to={signed ? "/profile" : "/login"} className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${location.pathname.includes('/profile') || location.pathname.includes('/login') ? 'text-primary' : 'text-gray-500 hover:text-white'}`}>
           <MdPerson size={24} />
           <span className="text-[10px] font-bold">{signed ? "Profile" : "Login"}</span>
         </Link>

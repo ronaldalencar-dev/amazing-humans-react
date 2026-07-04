@@ -2,7 +2,7 @@ import React from 'react';
 import { FaTools, FaCoffee, FaDiscord, FaTwitter } from 'react-icons/fa';
 import { MdRocketLaunch, MdAutoAwesome } from 'react-icons/md';
 
-export default function Manutencao() {
+export default function Maintenance() {
   return (
     <div className="min-h-screen bg-[#121212] flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
         

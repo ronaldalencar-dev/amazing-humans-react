@@ -9,7 +9,7 @@ import { FaPaypal, FaCreditCard, FaStripe } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-export default function CriarAnuncio() {
+export default function CreateAd() {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
 
@@ -142,7 +142,7 @@ export default function CriarAnuncio() {
                                 <label className="block text-sm text-gray-400 mb-1">Target URL (Your Book Link)</label>
                                 <input
                                     type="text"
-                                    placeholder="https://amazinghumans.com/obra/..."
+                                    placeholder="https://amazinghumans.com/story/..."
                                     value={link}
                                     onChange={(e) => setLink(e.target.value)}
                                     className="w-full bg-[#121212] border border-gray-700 rounded-lg p-3 text-white focus:border-primary outline-none"

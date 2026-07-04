@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { db } from '../services/firebaseConnection';
-import { doc, updateDoc, collection, query, where, getDocs, getCountFromServer } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs, getCountFromServer, addDoc, serverTimestamp } from 'firebase/firestore';
 import {
     MdEdit, MdPerson, MdLink, MdClose, MdImage,
     MdVerified, MdPeople, MdPersonAdd, MdLibraryBooks, MdTimeline, MdAutoStories,
@@ -19,7 +19,7 @@ const formatUrl = (url) => {
     return `https://${url}`;
 };
 
-export default function Perfil() {
+export default function Profile() {
     const { user } = useContext(AuthContext);
 
     const [isEditing, setIsEditing] = useState(false);
@@ -34,6 +34,13 @@ export default function Perfil() {
     const [minhasObras, setMinhasObras] = useState([]);
     const [libraryCount, setLibraryCount] = useState(0);
     const [loadingObras, setLoadingObras] = useState(true);
+
+    // Coleções
+    const [colecoes, setColecoes] = useState([]);
+    const [loadingColecoes, setLoadingColecoes] = useState(true);
+    const [showCollectionModal, setShowCollectionModal] = useState(false);
+    const [newCollectionName, setNewCollectionName] = useState('');
+    const [selectedCollectionBooks, setSelectedCollectionBooks] = useState([]);
 
     // Mantive apenas 'leituras' para as estatísticas gerais, removi cálculos de nível
     const leituras = user?.leituras || 0;
@@ -51,7 +58,16 @@ export default function Perfil() {
                 const qLib = query(collection(db, "biblioteca"), where("userId", "==", user.uid));
                 const snapLib = await getCountFromServer(qLib);
                 setLibraryCount(snapLib.data().count);
-            } catch (err) { console.error(err); } finally { setLoadingObras(false); }
+
+                const qColecoes = query(collection(db, "colecoes"), where("autorId", "==", user.uid));
+                const snapColecoes = await getDocs(qColecoes);
+                let listaColecoes = [];
+                snapColecoes.forEach((doc) => listaColecoes.push({ id: doc.id, ...doc.data() }));
+                setColecoes(listaColecoes);
+            } catch (err) { console.error(err); } finally { 
+                setLoadingObras(false); 
+                setLoadingColecoes(false);
+            }
         }
         loadData();
     }, [user]);
@@ -111,6 +127,28 @@ export default function Perfil() {
                 duration: 4000
             });
             // Logic to upload would go here, updating setCoverUrl with the result
+        }
+    }
+
+    async function handleCreateCollection() {
+        if (!newCollectionName.trim()) return toast.error("Collection name is required.");
+        if (selectedCollectionBooks.length === 0) return toast.error("Select at least 1 book.");
+        
+        try {
+            const docRef = await addDoc(collection(db, "colecoes"), {
+                autorId: user.uid,
+                nome: newCollectionName.trim(),
+                obrasIds: selectedCollectionBooks,
+                createdAt: serverTimestamp()
+            });
+            setColecoes([...colecoes, { id: docRef.id, autorId: user.uid, nome: newCollectionName.trim(), obrasIds: selectedCollectionBooks }]);
+            setShowCollectionModal(false);
+            setNewCollectionName('');
+            setSelectedCollectionBooks([]);
+            toast.success("Collection created successfully!");
+        } catch (error) {
+            console.error("Error creating collection:", error);
+            toast.error("Error creating collection.");
         }
     }
 
@@ -260,8 +298,92 @@ export default function Perfil() {
                             {minhasObras.map(obra => <StoryCard key={obra.id} data={obra} />)}
                         </div>
                     )}
+
+                    {/* COLEÇÕES */}
+                    <div className="flex items-center justify-between mb-6 mt-16">
+                        <h2 className="text-2xl font-bold text-white flex items-center gap-2"><MdLibraryBooks className="text-primary" /> My Collections</h2>
+                        {minhasObras.length > 0 && (
+                            <button onClick={() => setShowCollectionModal(true)} className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg">+ New Collection</button>
+                        )}
+                    </div>
+
+                    {loadingColecoes ? <div className="loading-spinner"></div> : colecoes.length === 0 ? (
+                        <div className="text-center py-8 bg-white/5 rounded-2xl border border-dashed border-white/10">
+                            <h3 className="text-lg font-bold text-gray-300">No collections yet</h3>
+                            <p className="text-gray-500 text-sm max-w-xs mx-auto mt-2">Group your books into collections to showcase them!</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {colecoes.map(col => (
+                                <div key={col.id} className="bg-black/20 p-5 rounded-xl border border-white/5 flex flex-col gap-2 hover:border-white/10 transition-colors">
+                                    <h3 className="text-lg font-bold text-white">{col.nome}</h3>
+                                    <p className="text-sm text-gray-400 font-medium">
+                                        {col.obrasIds.length} {col.obrasIds.length === 1 ? 'Book' : 'Books'}
+                                    </p>
+                                    <div className="flex flex-wrap gap-2 mt-2">
+                                        {col.obrasIds.slice(0, 3).map(id => {
+                                            const obra = minhasObras.find(o => o.id === id);
+                                            return obra ? (
+                                                <span key={id} className="text-[10px] bg-white/5 px-2 py-1 rounded text-gray-300 truncate max-w-[120px]">
+                                                    {obra.titulo}
+                                                </span>
+                                            ) : null;
+                                        })}
+                                        {col.obrasIds.length > 3 && (
+                                            <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-gray-400">+{col.obrasIds.length - 3}</span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {showCollectionModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 animate-fade-in">
+                    <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-white">Create Collection</h2>
+                            <button onClick={() => setShowCollectionModal(false)} className="text-gray-400 hover:text-white transition-colors bg-white/5 p-2 rounded-full hover:bg-white/10"><MdClose size={20} /></button>
+                        </div>
+                        <div className="space-y-5">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Collection Name</label>
+                                <input type="text" value={newCollectionName} onChange={(e) => setNewCollectionName(e.target.value)} className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary outline-none text-sm transition-colors" placeholder="e.g. The Lord of the Rings Series" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Select Books</label>
+                                <div className="max-h-60 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                                    {minhasObras.map(obra => (
+                                        <label key={obra.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-colors border border-transparent hover:border-white/10">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={selectedCollectionBooks.includes(obra.id)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) setSelectedCollectionBooks([...selectedCollectionBooks, obra.id]);
+                                                    else setSelectedCollectionBooks(selectedCollectionBooks.filter(id => id !== obra.id));
+                                                }}
+                                                className="w-4 h-4 rounded border-gray-600 bg-black/50 text-primary focus:ring-primary focus:ring-offset-gray-900"
+                                            />
+                                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                {obra.capa ? (
+                                                    <img src={obra.capa} alt={obra.titulo} className="w-8 h-10 object-cover rounded shadow" />
+                                                ) : (
+                                                    <div className="w-8 h-10 bg-white/10 rounded flex items-center justify-center shadow"><MdMenuBook className="text-gray-500 text-xs" /></div>
+                                                )}
+                                                <span className="text-white font-medium text-sm truncate">{obra.titulo}</span>
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                                <p className="text-[10px] text-gray-500 mt-2">Select at least 1 book to create a collection.</p>
+                            </div>
+                            <button onClick={handleCreateCollection} className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-xl transition shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)] mt-2">Save Collection</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
