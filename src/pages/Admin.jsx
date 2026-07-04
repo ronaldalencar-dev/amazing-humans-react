@@ -10,7 +10,7 @@ import {
     MdDelete, MdCheck, MdWarning, MdSecurity, MdOpenInNew,
     MdPeople, MdMenuBook, MdBarChart, MdSearch, MdBlock, MdVerified,
     MdSupervisedUserCircle, MdVisibility, MdVisibilityOff, MdClose, MdEditDocument,
-    MdLibraryBooks, MdComment, MdStar
+    MdLibraryBooks, MdComment, MdStar, MdPerson
 } from 'react-icons/md';
 import toast from 'react-hot-toast';
 

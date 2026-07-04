@@ -17,13 +17,13 @@ export default function Feedback() {
     e.preventDefault();
     
     if (!signed) {
-      toast.error("Você precisa estar logado para enviar um feedback.");
+      toast.error("You must be logged in to submit feedback.");
       return;
     }
 
     const wordCount = message.trim().split(/\s+/).filter(w => w.length > 0).length;
     if (wordCount < 50 || wordCount > 2000) {
-      toast.error(`O texto precisa ter entre 50 e 2000 palavras. Atualmente: ${wordCount}`);
+      toast.error(`Feedback must be between 50 and 2000 words. Currently: ${wordCount}`);
       return;
     }
 

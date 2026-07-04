@@ -118,7 +118,7 @@ export default function Header() {
               <Link to="/dashboard" onClick={() => setShowDrawer(false)} className="drawer-link"><MdEditNote size={20} /> <span>Dashboard</span></Link>
               <Link to="/biblioteca" onClick={() => setShowDrawer(false)} className="drawer-link"><MdBookmarks size={20} /> <span>Library</span></Link>
 
-              <Link to="/feedback" onClick={(e) => { setShowDrawer(false); if (!signed) { e.preventDefault(); toast.error("Você precisa estar logado para enviar um feedback."); } }} className="drawer-link text-purple-400"><MdChatBubbleOutline size={20} /> <span>Give your Feedback</span></Link>
+              <Link to="/feedback" onClick={(e) => { setShowDrawer(false); if (!signed) { e.preventDefault(); toast.error("You must be logged in to submit feedback."); } }} className="drawer-link text-purple-400"><MdChatBubbleOutline size={20} /> <span>Give your Feedback</span></Link>
 
               <Link to="/settings" onClick={() => setShowDrawer(false)} className="drawer-link"><MdSettings size={20} /> <span>Settings</span></Link>
               <button onClick={() => { logout(); setShowDrawer(false); }} className="drawer-link text-red-400 mt-4 border-t border-white/5 pt-4"><MdLogout size={20} /> <span>Logout</span></button>
@@ -127,7 +127,7 @@ export default function Header() {
             <>
               <Link to="/how-it-works" onClick={() => setShowDrawer(false)} className="drawer-link"><MdInfoOutline size={20} /> <span>How it Works</span></Link>
               
-              <Link to="/feedback" onClick={(e) => { setShowDrawer(false); e.preventDefault(); toast.error("Você precisa estar logado para enviar um feedback."); }} className="drawer-link text-purple-400"><MdChatBubbleOutline size={20} /> <span>Give your Feedback</span></Link>
+              <Link to="/feedback" onClick={(e) => { setShowDrawer(false); e.preventDefault(); toast.error("You must be logged in to submit feedback."); }} className="drawer-link text-purple-400"><MdChatBubbleOutline size={20} /> <span>Give your Feedback</span></Link>
 
               <Link to="/login" onClick={() => setShowDrawer(false)} className="mt-4 mx-2 bg-primary text-white py-3 rounded-lg font-bold text-center shadow-lg"><span>Login / Sign Up</span></Link>
             </>
@@ -164,7 +164,7 @@ export default function Header() {
               <MdInfoOutline size={18} /> How it Works
             </Link>
 
-            <Link to="/feedback" onClick={(e) => { if (!signed) { e.preventDefault(); toast.error("Você precisa estar logado para enviar um feedback."); } }} className="flex items-center gap-2 text-purple-400 hover:text-purple-300 font-bold text-sm transition-colors">
+            <Link to="/feedback" onClick={(e) => { if (!signed) { e.preventDefault(); toast.error("You must be logged in to submit feedback."); } }} className="flex items-center gap-2 text-purple-400 hover:text-purple-300 font-bold text-sm transition-colors">
               <MdChatBubbleOutline size={18} /> Give your Feedback
             </Link>
 
