@@ -18,10 +18,22 @@ export default function RatingWidget({ obraId, onRatingUpdate }) {
   useEffect(() => {
     async function checkUserRating() {
       if (!user?.uid || !obraId) return;
+      
+      const cacheKey = `rating_${obraId}_${user.uid}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached !== null) {
+          setUserRating(Number(cached));
+          return;
+      }
+      
       const docRef = doc(db, "avaliacoes", `${obraId}_${user.uid}`);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        setUserRating(docSnap.data().rating);
+        const rating = docSnap.data().rating;
+        setUserRating(rating);
+        sessionStorage.setItem(cacheKey, rating);
+      } else {
+        sessionStorage.setItem(cacheKey, 0);
       }
     }
     checkUserRating();
@@ -43,6 +55,7 @@ export default function RatingWidget({ obraId, onRatingUpdate }) {
       });
 
       setUserRating(rate);
+      sessionStorage.setItem(`rating_${obraId}_${user.uid}`, rate);
       toast.success("Rating saved!");
       
       // Optional: Optimistic visual update

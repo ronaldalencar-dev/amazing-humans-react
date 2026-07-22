@@ -7,6 +7,11 @@ export default function BottomNav() {
   const location = useLocation();
   const { signed } = useContext(AuthContext);
 
+  // Esconder o BottomNav na página de leitura para que as configurações de leitura fiquem visíveis no mobile
+  if (location.pathname.startsWith('/read/') || location.pathname.startsWith('/interactive-story/')) {
+    return null;
+  }
+
   // Não renderiza em telas grandes (lg)
   return (
     <div className="lg:hidden fixed bottom-0 left-0 w-full bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-white/10 z-[999] pb-safe shadow-[0_-5px_15px_rgba(0,0,0,0.3)]">

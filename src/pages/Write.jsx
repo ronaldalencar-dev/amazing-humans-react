@@ -372,23 +372,172 @@ export default function Write() {
 
 
 
+    const mobileEditorConfig = {
+        ...editorConfig,
+        height: 500,
+        menubar: false,
+        toolbar: 'undo redo | bold italic | align | bullist numlist',
+        statusbar: false,
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 16px; line-height: 1.6; padding: 10px; } p { margin-bottom: 1rem !important; }'
+    };
+
     return (
-        <div className="max-w-6xl mx-auto px-4 py-8">
+        <>
+            {/* MOBILE WATTPAD-STYLE LAYOUT */}
+            <div className="block md:hidden bg-black min-h-screen text-white pb-20">
+                {/* Mobile App Header */}
+                <div className="sticky top-0 z-50 bg-black/90 backdrop-blur-md border-b border-white/10 flex items-center justify-between p-3">
+                    <button onClick={() => navigate('/')} className="text-zinc-400 p-2 hover:text-white transition-colors">
+                        <MdClose size={24} />
+                    </button>
+                    <span className="font-bold text-sm tracking-wide">
+                        {modo === 'nova' ? 'New Story' : 'Write Chapter'}
+                    </span>
+                    <button 
+                        onClick={() => handlePublicar('public')} 
+                        disabled={loadingPost} 
+                        className="text-primary font-bold px-3 py-1.5 text-sm disabled:opacity-50 hover:bg-primary/10 rounded-full transition-colors"
+                    >
+                        {loadingPost ? "..." : (dataAgendada && modo !== 'nova') ? "Schedule" : "Publish"}
+                    </button>
+                </div>
+                
+                <div className="w-full">
+                    {/* Mode Switcher - Mobile */}
+                    <div className="flex justify-center border-b border-zinc-800 bg-zinc-950">
+                        <button 
+                            onClick={() => setModo('nova')} 
+                            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${modo === 'nova' ? 'text-primary border-b-2 border-primary bg-primary/5' : 'text-zinc-500'}`}
+                        >
+                            New Book
+                        </button>
+                        <button 
+                            onClick={() => setModo('capitulo')} 
+                            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${modo === 'capitulo' ? 'text-primary border-b-2 border-primary bg-primary/5' : 'text-zinc-500'}`}
+                        >
+                            Chapter
+                        </button>
+                    </div>
+
+                    {modo === 'nova' ? (
+                        <div className="flex flex-col">
+                            {/* Edge-to-edge Cover Upload */}
+                            <div className="relative w-full aspect-[2/3] max-h-[40vh] bg-zinc-900 flex items-center justify-center overflow-hidden border-b border-zinc-800">
+                                {capa ? (
+                                    <img src={capa} alt="Cover" className="w-full h-full object-cover opacity-80" />
+                                ) : (
+                                    <div className="flex flex-col items-center text-zinc-500">
+                                        <MdFileUpload size={48} className="mb-2 opacity-50" />
+                                        <span className="text-sm font-bold">Add a Cover</span>
+                                    </div>
+                                )}
+                                <input type="file" onChange={handleCoverFile} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/png, image/jpeg" />
+                            </div>
+
+                            {/* Book Details */}
+                            <div className="p-4 space-y-6">
+                                <input 
+                                    type="text" 
+                                    placeholder="Story Title" 
+                                    value={tituloObra} 
+                                    onChange={(e) => setTituloObra(e.target.value)} 
+                                    className="w-full bg-transparent text-3xl font-extrabold text-white placeholder-zinc-600 outline-none border-b border-transparent focus:border-zinc-700 pb-2 transition-colors" 
+                                />
+                                
+                                <div>
+                                    <p className="text-zinc-500 font-bold text-xs uppercase mb-3 tracking-widest">Story Description</p>
+                                    <div className="border border-zinc-800 rounded-lg overflow-hidden">
+                                        <Editor tinymceScriptSrc={OPEN_SOURCE_TINY} init={{ ...mobileEditorConfig, height: 200 }} onEditorChange={(content) => setSinopse(content)} />
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <p className="text-zinc-500 font-bold text-xs uppercase mb-3 tracking-widest">Tags & Genres</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {genresList.map(cat => (
+                                            <label key={cat} className={`cursor-pointer text-[11px] px-3 py-1.5 rounded-full border transition-all ${categorias.includes(cat) ? 'bg-primary/20 border-primary text-primary font-bold' : 'bg-zinc-900 border-zinc-800 text-zinc-400'}`}>
+                                                <input type="checkbox" value={cat} onChange={handleCategoria} className="hidden" /> {cat}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col">
+                            {/* Select Story */}
+                            <div className="p-4 bg-zinc-950 border-b border-zinc-800">
+                                <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">Writing for</label>
+                                <select value={obraSelecionada} onChange={(e) => setObraSelecionada(e.target.value)} className="w-full bg-transparent text-white font-bold outline-none cursor-pointer text-sm">
+                                    <option value="" className="bg-zinc-900">-- Select a Story --</option>
+                                    {minhasObras.map(o => <option key={o.id} value={o.id} className="bg-zinc-900">{o.titulo}</option>)}
+                                </select>
+                            </div>
+                            
+                            {/* Editor Area */}
+                            <div className="p-4 flex-1 flex flex-col">
+                                <input 
+                                    type="text" 
+                                    placeholder="Chapter Title" 
+                                    value={tituloCapitulo} 
+                                    onChange={(e) => setTituloCapitulo(e.target.value)} 
+                                    className="w-full bg-transparent text-2xl font-extrabold text-white placeholder-zinc-600 outline-none mb-4 pb-2 border-b border-zinc-800 focus:border-zinc-500 transition-colors" 
+                                />
+                                
+                                <div className="flex justify-between items-center mb-2">
+                                    <p className="text-zinc-500 font-bold text-[10px] uppercase tracking-widest">Chapter Content</p>
+                                    <span className={`text-[10px] font-bold ${countWords(conteudo) < 500 ? 'text-red-400' : 'text-green-400'}`}>
+                                        {countWords(conteudo)} words
+                                    </span>
+                                </div>
+
+                                {/* Edge-to-Edge TinyMCE */}
+                                <div className="-mx-4 border-y border-zinc-800 mb-6">
+                                    <Editor tinymceScriptSrc={OPEN_SOURCE_TINY} init={mobileEditorConfig} onEditorChange={(content) => setConteudo(content)} />
+                                </div>
+
+                                {/* SCHEDULE PUBLICATION MOBILE */}
+                                <div className="mb-6">
+                                    <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1 mb-2">
+                                        <MdSchedule size={14} /> Schedule Publication (Optional)
+                                    </label>
+                                    <input
+                                        type="datetime-local"
+                                        value={dataAgendada}
+                                        onChange={(e) => setDataAgendada(e.target.value)}
+                                        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-white text-sm focus:border-zinc-600 outline-none"
+                                    />
+                                    <p className="text-[10px] text-zinc-600 mt-1">Leave blank to publish immediately.</p>
+                                </div>
+                                
+                                <div className="flex justify-center gap-4 pb-8">
+                                    <button onClick={() => handlePublicar('draft')} disabled={loadingPost} className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-full text-sm transition-colors flex items-center justify-center gap-2">
+                                        <MdEdit size={16} /> Save Draft
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* DESKTOP ORIGINAL LAYOUT */}
+            <div className="hidden md:block max-w-6xl mx-auto px-4 py-8">
             {/* HEADER */}
-            <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b border-white/10 pb-4 gap-4">
                 <h1 className="text-3xl font-bold text-white flex items-center gap-3"><MdEdit className="text-primary" /> Editor Studio</h1>
                 <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white flex items-center gap-1 transition-colors"><MdCancel size={20} /> Cancel</button>
             </div>
 
             {/* BOTÕES DE MODO */}
-            <div className="flex gap-4 mb-8 bg-[#1f1f1f] p-1 rounded-lg w-fit border border-[#333]">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-8 bg-[#1f1f1f] p-1 rounded-lg w-full sm:w-fit border border-[#333]">
                 <button onClick={() => setModo('nova')} className={`px-6 py-2 rounded-md font-bold transition-all ${modo === 'nova' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>Create New Book</button>
                 <button onClick={() => setModo('capitulo')} className={`px-6 py-2 rounded-md font-bold transition-all ${modo === 'capitulo' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>New Chapter Only</button>
                 <button
                     onClick={() => {
                         navigate('/write-interactive-story');
                     }}
-                    className="px-6 py-2 rounded-md font-bold transition-all text-gray-400 hover:text-white flex items-center gap-2"
+                    className="px-6 py-2 rounded-md font-bold transition-all text-gray-400 hover:text-white flex items-center justify-center gap-2"
                 >
                     <><span className="text-zinc-400">⎇</span> Interactive Story</>
                 </button>
@@ -443,23 +592,23 @@ export default function Write() {
 
                         {/* IMPORT ALERT */}
                         <div className="mb-6 bg-purple-500/10 border border-purple-500/30 p-4 rounded-lg">
-                            <div className="flex items-start justify-between">
+                            <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                                 <div className="flex items-start gap-3">
                                     <MdFileUpload className="text-purple-400 text-xl flex-shrink-0 mt-0.5" />
                                     <div>
                                         <h4 className="text-purple-400 text-sm font-bold mb-1">Bulk Import Chapters</h4>
                                         <p className="text-gray-400 text-xs mb-2">
-                                            Upload a <b>.docx (Word)</b> or <b>.pdf</b> file containing multiple chapters.
+                                            Upload a <b>.docx (Word)</b> file containing multiple chapters.
                                             The system will automatically detect chapters like "Chapter 1", "Capítulo 5", etc.
                                             You will be able to review and edit them before publishing.
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex flex-col items-end gap-2">
-                                    <label htmlFor="bulk-import" className="cursor-pointer bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-lg flex items-center gap-2">
+                                <div className="flex flex-col items-center sm:items-end gap-2 w-full sm:w-auto">
+                                    <label htmlFor="bulk-import" className="cursor-pointer bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-lg flex items-center justify-center gap-2 w-full sm:w-auto">
                                         <MdFileUpload /> {importFile ? "Change File" : "Select File"}
                                     </label>
-                                    <input id="bulk-import" type="file" onChange={handleScanFile} className="hidden" accept=".docx,.doc,.pdf" />
+                                    <input id="bulk-import" type="file" onChange={handleScanFile} className="hidden" accept=".docx,.doc" />
                                     {importFile && (
                                         <div className="flex items-center gap-2 bg-purple-500/20 px-2 py-1 rounded text-[10px] text-purple-200">
                                             <span>{importFile.name}</span>
@@ -601,11 +750,11 @@ export default function Write() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="mt-8 flex justify-end gap-3 pt-6 border-t border-white/10">
-                                    <button onClick={() => handlePublicar('draft')} disabled={loadingPost} className="bg-[#333] hover:bg-[#444] text-gray-300 font-bold py-3 px-6 rounded-lg flex items-center gap-2 disabled:opacity-50">
+                                <div className="mt-8 flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-white/10">
+                                    <button onClick={() => handlePublicar('draft')} disabled={loadingPost} className="bg-[#333] hover:bg-[#444] text-gray-300 font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50">
                                         <MdEdit /> Save Draft
                                     </button>
-                                    <button onClick={() => handlePublicar('public')} disabled={loadingPost} className="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-8 rounded-lg shadow-lg flex items-center gap-2 disabled:opacity-50">
+                                    <button onClick={() => handlePublicar('public')} disabled={loadingPost} className="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-8 rounded-lg shadow-lg flex items-center justify-center gap-2 disabled:opacity-50">
                                         {loadingPost ? "Processing..." : (dataAgendada && modo !== 'nova') ? <><MdSchedule size={20} /> Schedule</> : <><MdCheckCircle size={20} /> Publish</>}
                                     </button>
                                 </div>
@@ -614,7 +763,7 @@ export default function Write() {
                     </div>
                 </div>
             </div>
-        </div>
-
+            </div>
+        </>
     );
 }

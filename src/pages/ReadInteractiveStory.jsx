@@ -44,8 +44,7 @@ export default function ReadInteractiveStory() {
         async function load() {
             setLoading(true);
             try {
-                // Delay artificial para a tela de carregamento ser vista por 2s
-                await new Promise(resolve => setTimeout(resolve, 1800));
+                await new Promise(resolve => setTimeout(resolve, 1000));
 
                 const snap = await getDoc(doc(db, 'historias_interativas', id));
                 if (!snap.exists()) {

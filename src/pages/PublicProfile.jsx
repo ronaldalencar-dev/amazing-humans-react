@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { db } from '../services/firebaseConnection';
 import { collection, query, where, getDocs, doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore'; 
 import { AuthContext } from '../contexts/AuthContext';
 import StoryCard from '../components/StoryCard';
-import { MdVerified, MdPersonAdd, MdCheck, MdPeople, MdAutoStories, MdTimeline, MdDiamond } from 'react-icons/md';
+import { MdVerified, MdPersonAdd, MdCheck, MdPeople, MdAutoStories, MdTimeline, MdDiamond, MdLibraryBooks } from 'react-icons/md';
 import { FaInstagram, FaTwitter, FaGlobe, FaPatreon, FaPaypal } from 'react-icons/fa'; 
 import toast from 'react-hot-toast';
 
@@ -21,6 +21,7 @@ export default function PublicProfile() {
 
   const [perfil, setPerfil] = useState(null);
   const [obras, setObras] = useState([]);
+  const [colecoes, setColecoes] = useState([]);
   const [loading, setLoading] = useState(true);
   
   const [isFollowing, setIsFollowing] = useState(false);
@@ -32,10 +33,33 @@ export default function PublicProfile() {
   useEffect(() => {
     async function loadData() {
         try {
+            // Tenta carregar do cache da sessão
+            const cachedProfile = sessionStorage.getItem(`public_profile_${id}`);
+            if (cachedProfile) {
+                const { perfilCache, obrasCache, colecoesCache, isVipCache } = JSON.parse(cachedProfile);
+                setPerfil(perfilCache);
+                setObras(obrasCache);
+                setColecoes(colecoesCache);
+                setIsVip(isVipCache);
+                
+                // Seguidor precisa ser sempre checado pois o user logado muda
+                if(user?.uid) {
+                    const followId = `${user.uid}_${id}`;
+                    const followDoc = await getDoc(doc(db, "seguidores", followId));
+                    setIsFollowing(followDoc.exists());
+                }
+                setLoading(false);
+                return;
+            }
+
             const userDoc = await getDoc(doc(db, "usuarios", id));
+            let finalPerfil = null;
+            let finalIsVip = false;
+
             if(userDoc.exists()) {
                 const data = userDoc.data();
-                setPerfil({ id: userDoc.id, ...data });
+                finalPerfil = { id: userDoc.id, ...data };
+                setPerfil(finalPerfil);
 
                 // Lógica de verificação VIP para Profile Público
                 if(data.vipUntil) {
@@ -47,6 +71,7 @@ export default function PublicProfile() {
                             vipDate = new Date(data.vipUntil);
                         }
                         if(vipDate > new Date()) {
+                            finalIsVip = true;
                             setIsVip(true);
                         }
                     } catch(e) { console.error("Erro data VIP", e); }
@@ -58,6 +83,23 @@ export default function PublicProfile() {
             let lista = [];
             snap.forEach(d => lista.push({ id: d.id, ...d.data() }));
             setObras(lista);
+
+            // Fetch Coleções
+            const qCol = query(collection(db, "colecoes"), where("autorId", "==", id));
+            const snapCol = await getDocs(qCol);
+            let listaCol = [];
+            snapCol.forEach(d => listaCol.push({ id: d.id, ...d.data() }));
+            setColecoes(listaCol);
+            
+            // Salva no cache da sessão
+            if (finalPerfil) {
+                sessionStorage.setItem(`public_profile_${id}`, JSON.stringify({
+                    perfilCache: finalPerfil,
+                    obrasCache: lista,
+                    colecoesCache: listaCol,
+                    isVipCache: finalIsVip
+                }));
+            }
 
             if(user?.uid) {
                 const followId = `${user.uid}_${id}`;
@@ -188,9 +230,29 @@ export default function PublicProfile() {
                         <p className="text-gray-500 italic">This user hasn't published any stories yet.</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10">
                         {obras.map(obra => <StoryCard key={obra.id} data={obra} />)}
                     </div>
+                )}
+
+                {/* COLEÇÕES */}
+                {colecoes.length > 0 && (
+                    <>
+                        <h2 className="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-4 flex items-center gap-2 mt-10">
+                            <MdLibraryBooks className="text-primary" /> Collections <span className="bg-white/10 text-xs px-2 py-1 rounded-full text-gray-300">{colecoes.length}</span>
+                        </h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {colecoes.map(col => (
+                                <Link to={`/collection/${col.id}`} key={col.id} className="bg-[#1f1f1f] border border-white/5 hover:border-primary/50 hover:bg-[#2a2a2a] transition-all p-5 rounded-xl flex flex-col items-start text-decoration-none group relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-1 h-full bg-primary group-hover:bg-purple-500 transition-colors"></div>
+                                    <h3 className="text-lg font-bold text-white mb-1 group-hover:text-primary transition-colors">{col.nome}</h3>
+                                    <p className="text-xs text-gray-400 font-bold bg-white/5 px-2 py-1 rounded-md mt-2">
+                                        {col.obrasIds?.length || 0} {col.obrasIds?.length === 1 ? 'Book' : 'Books'}
+                                    </p>
+                                </Link>
+                            ))}
+                        </div>
+                    </>
                 )}
             </div>
         </div>

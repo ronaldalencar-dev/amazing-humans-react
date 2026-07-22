@@ -212,26 +212,37 @@ export default function Comments({ targetId, targetType = 'capitulo', targetAuth
         if (!targetId) return;
         setErrorIndex(null);
 
-        const q = query(
-            collection(db, "comentarios"),
-            where("targetId", "==", targetId),
-            orderBy("data", "desc")
-        );
+        async function fetchComments() {
+            // Tenta carregar do cache da sessão
+            const cachedComments = sessionStorage.getItem(`comments_${targetId}`);
+            if (cachedComments) {
+                setComentarios(JSON.parse(cachedComments));
+                return;
+            }
 
-        const unsub = onSnapshot(q,
-            (snap) => {
+            try {
+                const q = query(
+                    collection(db, "comentarios"),
+                    where("targetId", "==", targetId),
+                    orderBy("data", "desc")
+                );
+
+                const snap = await getDocs(q);
                 let lista = [];
                 snap.forEach(d => lista.push({ id: d.id, ...d.data() }));
+                
+                // Salva no cache
+                sessionStorage.setItem(`comments_${targetId}`, JSON.stringify(lista));
                 setComentarios(lista);
-            },
-            (error) => {
+            } catch (error) {
                 console.error("Comments Error:", error);
                 if (error.code === 'failed-precondition' || error.message.includes('index')) {
                     setErrorIndex(error);
                 }
             }
-        );
-        return () => unsub();
+        }
+
+        fetchComments();
     }, [targetId]);
 
     async function handleEnviar(parentId = null) {
@@ -248,7 +259,7 @@ export default function Comments({ targetId, targetType = 'capitulo', targetAuth
         }
 
         try {
-            await addDoc(collection(db, "comentarios"), {
+            const docRef = await addDoc(collection(db, "comentarios"), {
                 texto: textoFinal,
                 autorId: user.uid,
                 autorNome: user.name,
@@ -257,6 +268,24 @@ export default function Comments({ targetId, targetType = 'capitulo', targetAuth
                 targetType: targetType,
                 parentId: parentId,
                 data: serverTimestamp()
+            });
+            
+            const novoComentario = {
+                id: docRef.id,
+                texto: textoFinal,
+                autorId: user.uid,
+                autorNome: user.name,
+                autorFoto: user.avatar,
+                targetId: targetId,
+                targetType: targetType,
+                parentId: parentId,
+                data: new Date()
+            };
+            
+            setComentarios(prev => {
+                const newList = [novoComentario, ...prev];
+                sessionStorage.setItem(`comments_${targetId}`, JSON.stringify(newList));
+                return newList;
             });
 
             let paraId = null;
@@ -283,7 +312,14 @@ export default function Comments({ targetId, targetType = 'capitulo', targetAuth
     }
 
     async function handleDelete(id) {
-        if (window.confirm("Delete comment?")) { await deleteDoc(doc(db, "comentarios", id)); }
+        if (window.confirm("Delete comment?")) { 
+            await deleteDoc(doc(db, "comentarios", id)); 
+            setComentarios(prev => {
+                const newList = prev.filter(c => c.id !== id);
+                sessionStorage.setItem(`comments_${targetId}`, JSON.stringify(newList));
+                return newList;
+            });
+        }
     }
 
     const raiz = comentarios.filter(c => !c.parentId);

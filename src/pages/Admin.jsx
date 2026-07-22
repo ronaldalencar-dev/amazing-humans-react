@@ -282,24 +282,28 @@ export default function Admin() {
             setUserLibrary(library);
 
             // 3. Comments (Recent 20)
-            const qComm = query(collection(db, "comentarios"), where("autorId", "==", targetUser.id), orderBy("data", "desc"), limit(20));
+            const qComm = query(collection(db, "comentarios"), where("autorId", "==", targetUser.id));
             const snapComm = await getDocs(qComm);
             let comments = [];
 
             // Fetch target details (Book or Chapter) for comments
             const commentPromises = snapComm.docs.map(async (d) => {
                 const cData = d.data();
-                let contextTitle = "Unknown Context";
-
-                // If we want more context, we'd fetch the chapter/book title here
-                // For now, we'll try to rely on what's stored or just show ID/Type
-                // Ideally, we should fetch the parent object if needed, but let's keep it light for now
-                // or use the targetTitle stored if available (some comments logic stores it)
-
                 return { id: d.id, ...cData };
             });
 
             comments = await Promise.all(commentPromises);
+            
+            // Sort comments descending in memory to avoid missing composite index error
+            comments.sort((a, b) => {
+                const timeA = a.data?.seconds || 0;
+                const timeB = b.data?.seconds || 0;
+                return timeB - timeA;
+            });
+            
+            // Limit to 20
+            comments = comments.slice(0, 20);
+            
             setUserComments(comments);
 
         } catch (error) {

@@ -150,26 +150,8 @@ export default function Home() {
         <meta name="description" content="A sanctuary for imagination. Read thousands of stories for free." />
       </Helmet>
 
-      <div className="mt-6">
-        <HeroCarousel />
-      </div>
-
-      <div className="text-center mt-6 mb-2 px-4 animate-fade-in">
-        <p className="text-gray-400 text-sm md:text-base font-light tracking-widest uppercase opacity-70 border-b border-white/5 pb-4 inline-block">
-          Science fiction focused on humanity’s resilience, ingenuity, and brutality in the face of the unknown.
-        </p>
-      </div>
-
-      <div className="flex flex-col-reverse md:flex-row justify-between items-end md:items-center mt-8 mb-4 gap-4 min-h-[40px]">
-        <div className="flex-1">
-          {lastTags && lastTags.length > 0 && (
-            <div className="flex items-center gap-2 text-yellow-500 animate-pulse">
-              <MdAutoAwesome />
-              <h3 className="font-bold text-sm tracking-wider uppercase">BASED ON WHAT YOU READ</h3>
-            </div>
-          )}
-        </div>
-
+      {/* --- SEARCH BAR MOVED TO TOP --- */}
+      <div className="flex justify-end mt-4 mb-6">
         <div className="flex w-full md:w-auto h-10 shadow-lg relative" onClick={(e) => e.stopPropagation()}>
           <div className="relative flex-1 md:w-72 group">
             <input
@@ -206,6 +188,23 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <div>
+        <HeroCarousel />
+      </div>
+
+      <div className="text-center mt-6 mb-2 px-4 animate-fade-in">
+        <p className="text-gray-400 text-sm md:text-base font-light tracking-widest uppercase opacity-70 border-b border-white/5 pb-4 inline-block">
+          Science fiction focused on humanity’s resilience, ingenuity, and brutality in the face of the unknown.
+        </p>
+      </div>
+
+      {lastTags && lastTags.length > 0 && (
+        <div className="flex items-center gap-2 text-yellow-500 animate-pulse mt-8 mb-4">
+          <MdAutoAwesome />
+          <h3 className="font-bold text-sm tracking-wider uppercase">BASED ON WHAT YOU READ</h3>
+        </div>
+      )}
 
       {lastTags && lastTags.length > 0 && <div className="-mt-6 mb-12"><Recommendations tags={lastTags} title="" /></div>}
       <AdBanner className="mb-10" />

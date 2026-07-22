@@ -345,7 +345,7 @@ export default function EditStory() {
           </Link>
           <h1 className="text-2xl font-bold text-white">Edit Book</h1>
         </div>
-        <Link to={`/story/${id}`} className="bg-[#2a2a2a] hover:bg-[#333] text-gray-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors border border-white/10">
+        <Link to={`/story/${id}`} className="w-full md:w-auto bg-[#2a2a2a] hover:bg-[#333] text-gray-300 px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors border border-white/10">
           <MdVisibility /> View Public Page
         </Link>
       </div>
@@ -447,7 +447,7 @@ export default function EditStory() {
         {/* --- COLUNA 2: LISTA DE CAPÍTULOS --- */}
         <div className="lg:col-span-2">
           <div className="bg-[#1f1f1f] border border-[#333] rounded-xl overflow-hidden shadow-lg flex flex-col h-full max-h-[800px]">
-            <div className="p-4 border-b border-[#333] flex justify-between items-center bg-[#252525]">
+            <div className="p-4 border-b border-[#333] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#252525]">
               <div className="flex items-center gap-3">
                 <input 
                   type="checkbox" 
@@ -460,27 +460,27 @@ export default function EditStory() {
                   Chapters <span className="bg-[#333] text-gray-400 text-xs px-2 py-0.5 rounded-full">{capitulos.length}</span>
                 </h3>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                 {selectedChapters.length > 0 && (
-                  <button onClick={handleBulkDelete} disabled={saving} className="text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-lg font-bold flex items-center gap-1 transition-colors shadow-lg shadow-red-900/20">
+                  <button onClick={handleBulkDelete} disabled={saving} className="flex-1 sm:flex-none text-xs bg-red-600 hover:bg-red-500 text-white px-3 py-2 rounded-lg font-bold flex items-center justify-center gap-1 transition-colors shadow-lg shadow-red-900/20">
                     <MdDelete size={16} /> Delete ({selectedChapters.length})
                   </button>
                 )}
                 <PremiumLock
                   user={user}
-                  feature="PDF/Word Import"
-                  description="Import chapters from PDF or Word files"
+                  feature="Word Import"
+                  description="Import chapters from Word files"
                   compact
                 >
-                  <label htmlFor="import-chapter-edit" className={`text-xs bg-purple-600 hover:bg-purple-500 text-white px-3 py-2 rounded-lg font-bold flex items-center gap-1 transition-colors shadow-lg cursor-pointer ${importing ? "opacity-50 pointer-events-none" : ""}`}>
-                    <MdFileUpload size={16} /> Import PDF/Word
+                  <label htmlFor="import-chapter-edit" className={`flex-1 sm:flex-none text-xs bg-purple-600 hover:bg-purple-500 text-white px-3 py-2 rounded-lg font-bold flex items-center justify-center gap-1 transition-colors shadow-lg cursor-pointer ${importing ? "opacity-50 pointer-events-none" : ""}`}>
+                    <MdFileUpload size={16} /> Import Word (.docx)
                   </label>
                   <input id="import-chapter-edit" type="file" onChange={(e) => {
                     if (e.target.files[0]) { setImportFile(e.target.files[0]); }
-                  }} className="hidden" accept=".pdf,.docx,.doc" />
+                  }} className="hidden" accept=".docx,.doc" />
                 </PremiumLock>
 
-                <Link to={`/write?obraId=${id}`} className="text-xs bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-1 transition-colors shadow-lg shadow-green-900/20">
+                <Link to={`/write?obraId=${id}`} className="flex-1 sm:flex-none text-xs bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-1 transition-colors shadow-lg shadow-green-900/20">
                   <MdAdd size={16} /> New Chapter
                 </Link>
               </div>

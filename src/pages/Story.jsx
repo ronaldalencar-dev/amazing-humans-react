@@ -8,7 +8,7 @@ import {
 import { AuthContext } from '../contexts/AuthContext';
 import {
     MdEdit, MdMenuBook, MdPerson, MdStar, MdBookmarkAdded, MdBookmarkBorder,
-    MdInfoOutline, MdVisibility, MdList, MdFlag, MdVerified, MdNavigateNext, MdNavigateBefore
+    MdInfoOutline, MdVisibility, MdList, MdFlag, MdVerified, MdNavigateNext, MdNavigateBefore, MdLibraryBooks
 } from 'react-icons/md';
 import { FaPatreon } from 'react-icons/fa';
 import Recommendations from '../components/Recommendations';
@@ -47,14 +47,22 @@ export default function Story() {
     const [obraCollections, setObraCollections] = useState([]);
 
     // --- CARREGAMENTO PRINCIPAL ---
-    // --- REAL-TIME: Story Listener ---
+    // --- EFFECT: Carregar Obra (Otimizado com Sessão) ---
     useEffect(() => {
-        let unsubscribe;
+        async function loadStory() {
+            const cachedObra = sessionStorage.getItem(`obra_${id}`);
+            if (cachedObra) {
+                const parsedObra = JSON.parse(cachedObra);
+                setObra(parsedObra);
+                setTotalPages(parsedObra.totalChapters > 0 ? Math.ceil(parsedObra.totalChapters / CHAPTERS_PER_PAGE) : 1);
+                setLoading(false);
+                return;
+            }
 
-        async function setupListener() {
-            const docRef = doc(db, "obras", id);
+            try {
+                const docRef = doc(db, "obras", id);
+                const snapshot = await getDoc(docRef);
 
-            unsubscribe = onSnapshot(docRef, (snapshot) => {
                 if (!snapshot.exists()) {
                     toast.error("Book not found!");
                     setLoading(false);
@@ -62,67 +70,53 @@ export default function Story() {
                 }
 
                 const dadosObra = { id: snapshot.id, ...snapshot.data() };
-
-                // Atualiza o estado da obra em tempo real
-                setObra(prev => {
-                    // Se o documento vier com autor atualizado (via Cloud Function), usa ele.
-                    // Preserva badges se já existirem no estado anterior e não vierem no novo (embora setupListener não traga badges do user)
-
-                    const novoEstado = { ...dadosObra };
-
-                    // Se já tínhamos badges carregadas e o ID do autor não mudou, preserva.
-                    if (prev?.autorId === dadosObra.autorId && prev?.autorBadges) {
-                        novoEstado.autorBadges = prev.autorBadges;
-                    }
-
-                    // O nome 'autor' agora vem do documento da obra (atualizado pela CF), 
-                    // então confiamos em 'posteriores' atualizações do snapshot.
-
-                    return novoEstado;
-                });
-
-                // Calcula total de páginas sempre que totalChapters mudar
-                const totalCaps = dadosObra.totalChapters || 0;
-                setTotalPages(totalCaps > 0 ? Math.ceil(totalCaps / CHAPTERS_PER_PAGE) : 1);
-
+                sessionStorage.setItem(`obra_${id}`, JSON.stringify(dadosObra));
+                setObra(dadosObra);
+                setTotalPages(dadosObra.totalChapters > 0 ? Math.ceil(dadosObra.totalChapters / CHAPTERS_PER_PAGE) : 1);
+            } catch (error) {
+                console.error("Erro ao buscar obra:", error);
+                toast.error("Error loading story.");
+            } finally {
                 setLoading(false);
-            }, (error) => {
-                console.error("Erro no listener da obra:", error);
-                setLoading(false);
-            });
+            }
         }
 
-        setupListener();
-
-        return () => {
-            if (unsubscribe) unsubscribe();
-        };
+        loadStory();
     }, [id]);
 
-    // --- EFFECT: Carregar Autor (Qdo obra for setada/atualizada e tiver autorId) ---
-    // --- EFFECT: Monitorar Autor em Tempo Real (Substitui busca única) ---
+    // --- EFFECT: Carregar Autor (Otimizado) ---
     useEffect(() => {
-        // Limpa dados do autor anterior ao mudar de obra/autor
         if (!obra?.autorId) {
             setAuthorData(null);
             return;
         }
 
-        const userRef = doc(db, "usuarios", obra.autorId);
-        const unsubscribe = onSnapshot(userRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const uData = docSnap.data();
-                setAuthorData({ 
-                    nome: uData.nome, 
-                    badges: uData.badges || [],
-                    patreon: uData.patreon || null
-                });
+        async function loadAuthor() {
+            const cachedAuthor = sessionStorage.getItem(`autor_${obra.autorId}`);
+            if (cachedAuthor) {
+                setAuthorData(JSON.parse(cachedAuthor));
+                return;
             }
-        }, (error) => {
-            console.error("Erro ao monitorar autor:", error);
-        });
 
-        return () => unsubscribe();
+            try {
+                const userRef = doc(db, "usuarios", obra.autorId);
+                const docSnap = await getDoc(userRef);
+                if (docSnap.exists()) {
+                    const uData = docSnap.data();
+                    const aData = { 
+                        nome: uData.nome, 
+                        badges: uData.badges || [],
+                        patreon: uData.patreon || null
+                    };
+                    sessionStorage.setItem(`autor_${obra.autorId}`, JSON.stringify(aData));
+                    setAuthorData(aData);
+                }
+            } catch (error) {
+                console.error("Erro ao carregar autor:", error);
+            }
+        }
+
+        loadAuthor();
     }, [obra?.autorId]);
 
     // --- EFFECT: Recarregar capítulos se o total mudar (ex: novo cap publicado) ---
@@ -153,8 +147,7 @@ export default function Story() {
     // --- BUSCA DE CAPÍTULOS ---
     async function fetchChapters(pageNumber) {
         setLoadingCaps(true);
-        // Delay artificial de quase 2 segundos para apreciar o loader
-        await new Promise(resolve => setTimeout(resolve, 1800));
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         if (chaptersCache[pageNumber]) {
             setCapitulos(chaptersCache[pageNumber]);
@@ -323,10 +316,10 @@ export default function Story() {
                         {obraCollections.length > 0 && (
                             <div className="flex flex-wrap gap-2 mb-4">
                                 {obraCollections.map(col => (
-                                    <div key={col.id} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-md text-xs text-primary font-bold shadow-[0_0_10px_rgba(var(--primary-rgb),0.1)]">
+                                    <Link to={`/collection/${col.id}`} key={col.id} className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-md text-xs text-primary font-bold shadow-[0_0_10px_rgba(var(--primary-rgb),0.1)] transition-colors text-decoration-none">
                                         <MdLibraryBooks size={14} />
                                         Collection: {col.nome}
-                                    </div>
+                                    </Link>
                                 ))}
                             </div>
                         )}

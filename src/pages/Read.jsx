@@ -57,10 +57,6 @@ export default function Read() {
     const [scrollSpeed, setScrollSpeed] = useState(1);
     const scrollInterval = useRef(null);
 
-    const [isSpeaking, setIsSpeaking] = useState(false);
-    const synthesisRef = useRef(window.speechSynthesis);
-    const utteranceRef = useRef(null);
-
     // Carregar Configurações do LocalStorage
     useEffect(() => {
         const saved = localStorage.getItem('ah_reader_settings');
@@ -85,11 +81,35 @@ export default function Read() {
         async function loadCapitulo() {
             setLoading(true);
             stopAutoScroll();
-            stopSpeaking();
 
             try {
-                // Delay artificial para a tela de carregamento ser vista por 2s
-                await new Promise(resolve => setTimeout(resolve, 1800));
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Tenta carregar do cache da sessão
+                const cachedData = sessionStorage.getItem(`capitulo_read_${id}`);
+                if (cachedData) {
+                    const parsedData = JSON.parse(cachedData);
+                    setCapitulo(parsedData.capitulo);
+                    setPrevId(parsedData.prevId);
+                    setNextId(parsedData.nextId);
+                    
+                    // Logica de histórico (Atualiza mesmo do cache)
+                    if (user?.uid) {
+                        const historyRef = doc(db, "historico", `${user.uid}_${parsedData.capitulo.obraId}`);
+                        setDoc(historyRef, {
+                            userId: user.uid,
+                            obraId: parsedData.capitulo.obraId,
+                            bookTitle: parsedData.capitulo.nomeObra || "Unknown Book",
+                            lastChapterId: id,
+                            lastChapterTitle: parsedData.capitulo.titulo,
+                            accessedAt: serverTimestamp()
+                        }, { merge: true });
+                    }
+                    
+                    setLoading(false);
+                    window.scrollTo(0, 0);
+                    return;
+                }
 
                 const docRef = doc(db, "capitulos", id);
                 const docSnap = await getDoc(docRef);
@@ -101,7 +121,8 @@ export default function Read() {
                 }
 
                 const data = docSnap.data();
-                setCapitulo({ id: docSnap.id, ...data });
+                const novoCapitulo = { id: docSnap.id, ...data };
+                setCapitulo(novoCapitulo);
 
                 // LOGICA DE CONTAGEM E HISTÓRICO
                 if (user?.uid) {
@@ -143,8 +164,18 @@ export default function Read() {
 
                 const [snapAnt, snapProx] = await Promise.all([getDocs(qAnt), getDocs(qProx)]);
 
-                setPrevId(!snapAnt.empty ? snapAnt.docs[0].id : null);
-                setNextId(!snapProx.empty ? snapProx.docs[0].id : null);
+                const pId = !snapAnt.empty ? snapAnt.docs[0].id : null;
+                const nId = !snapProx.empty ? snapProx.docs[0].id : null;
+
+                setPrevId(pId);
+                setNextId(nId);
+
+                // Salva no cache
+                sessionStorage.setItem(`capitulo_read_${id}`, JSON.stringify({
+                    capitulo: novoCapitulo,
+                    prevId: pId,
+                    nextId: nId
+                }));
 
             } catch (error) { console.error("Erro ao carregar:", error); } finally { setLoading(false); window.scrollTo(0, 0); }
         }
@@ -152,7 +183,6 @@ export default function Read() {
 
         return () => {
             stopAutoScroll();
-            stopSpeaking();
         };
     }, [id, navigate, user]);
 
@@ -179,31 +209,6 @@ export default function Read() {
         setIsAutoScrolling(false);
         if (scrollInterval.current) clearInterval(scrollInterval.current);
     };
-
-    const toggleSpeaking = () => {
-        if (isSpeaking) {
-            synthesisRef.current.cancel();
-            setIsSpeaking(false);
-        } else {
-            const text = document.getElementById('chapter-content')?.innerText;
-            if (!text) return;
-
-            utteranceRef.current = new SpeechSynthesisUtterance(text);
-            utteranceRef.current.onend = () => setIsSpeaking(false);
-            synthesisRef.current.speak(utteranceRef.current);
-            setIsSpeaking(true);
-        }
-    };
-
-    const stopSpeaking = () => {
-        if (synthesisRef.current) {
-            synthesisRef.current.cancel();
-            setIsSpeaking(false);
-        }
-    };
-
-
-
     const cleanContent = React.useMemo(() => capitulo?.conteudo ? DOMPurify.sanitize(capitulo.conteudo) : '', [capitulo?.conteudo]);
     const cleanNote = React.useMemo(() => capitulo?.authorNote ? DOMPurify.sanitize(capitulo.authorNote) : null, [capitulo?.authorNote]);
 
@@ -230,14 +235,6 @@ export default function Read() {
             <div className="hidden md:flex fixed top-24 right-4 z-50 flex-col items-end gap-2">
                 <div className="flex flex-col gap-2">
                     <button
-                        onClick={toggleSpeaking}
-                        className={`p-3 rounded-full shadow-lg border transition-all ${isSpeaking ? 'bg-green-600 text-white border-green-500 animate-pulse' : `${currentTheme.uiBg} ${currentTheme.text} ${currentTheme.uiBorder} hover:border-primary`}`}
-                        title={isSpeaking ? "Stop Reading" : "Read Aloud"}
-                    >
-                        {isSpeaking ? <MdStop size={24} /> : <MdVolumeUp size={24} />}
-                    </button>
-
-                    <button
                         onClick={toggleAutoScroll}
                         className={`p-3 rounded-full shadow-lg border transition-all ${isAutoScrolling ? 'bg-zinc-600 text-white border-zinc-500' : `${currentTheme.uiBg} ${currentTheme.text} ${currentTheme.uiBorder} hover:border-primary`}`}
                         title="Auto Scroll"
@@ -253,9 +250,6 @@ export default function Read() {
 
             {/* MOBILE FOOTER */}
             <div className={`md:hidden fixed bottom-0 left-0 w-full z-[100] border-t px-6 py-3 flex justify-between items-center safe-area-pb ${currentTheme.uiBg} ${currentTheme.uiBorder} shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.3)]`}>
-                <button onClick={toggleSpeaking} className={`p-2 rounded-full transition-colors ${isSpeaking ? 'text-green-500 bg-green-500/10' : `${currentTheme.text}`}`}>
-                    {isSpeaking ? <MdStop size={28} /> : <MdVolumeUp size={28} />}
-                </button>
                 <button onClick={toggleAutoScroll} className={`p-2 rounded-full transition-colors ${isAutoScrolling ? 'text-zinc-500 bg-zinc-500/10' : `${currentTheme.text}`}`}>
                     {isAutoScrolling ? <MdPause size={28} /> : <MdAutorenew size={28} />}
                 </button>

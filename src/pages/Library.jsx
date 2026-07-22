@@ -65,13 +65,10 @@ export default function Library() {
                         const dataHist = histSnap.data();
                         detalhes.ultimoCapituloId = dataHist.lastChapterId;
                         detalhes.ultimoCapituloLido = dataHist.lastChapterTitle;
-
-                        const qCaps = query(collection(db, "capitulos"), where("obraId", "==", dadosLib.obraId), orderBy("data", "asc"));
-                        const snapCaps = await getDocs(qCaps);
-                        if (!snapCaps.empty && detalhes.ultimoCapituloId) {
-                            const index = snapCaps.docs.findIndex(d => d.id === detalhes.ultimoCapituloId);
-                            if (index !== -1) detalhes.progresso = Math.round(((index + 1) / snapCaps.size) * 100);
-                        }
+                        
+                        // Otimização: Não buscamos mais TODOS os capítulos apenas para calcular a porcentagem.
+                        // A porcentagem ficará oculta e mostraremos apenas o último capítulo lido, salvando 1000+ reads.
+                        detalhes.progresso = null;
                     }
                 } catch (err) { console.error(err); }
                 return detalhes;
@@ -140,8 +137,12 @@ export default function Library() {
                 <div>
                     <Link to={`/story/${item.obraId}`}><h3 className="text-white font-bold text-lg leading-tight mb-1 group-hover:text-zinc-400 transition-colors">{item.tituloObra}</h3></Link>
                     <div className="mt-3">
-                        <div className="flex justify-between items-center text-xs text-gray-400 mb-1 font-bold uppercase tracking-wide"><span>Progress</span><span className={item.progresso === 100 ? "text-green-500" : "text-zinc-400"}>{item.progresso}%</span></div>
-                        <div className="w-full h-2 bg-[#2a2a2a] rounded-full overflow-hidden"><div className={`h-full transition-all duration-1000 ${item.progresso === 100 ? 'bg-green-600' : 'bg-zinc-600'}`} style={{ width: `${item.progresso}%` }}></div></div>
+                        {item.progresso !== null && (
+                            <>
+                                <div className="flex justify-between items-center text-xs text-gray-400 mb-1 font-bold uppercase tracking-wide"><span>Progress</span><span className={item.progresso === 100 ? "text-green-500" : "text-zinc-400"}>{item.progresso}%</span></div>
+                                <div className="w-full h-2 bg-[#2a2a2a] rounded-full overflow-hidden mb-2"><div className={`h-full transition-all duration-1000 ${item.progresso === 100 ? 'bg-green-600' : 'bg-zinc-600'}`} style={{ width: `${item.progresso}%` }}></div></div>
+                            </>
+                        )}
                         <p className="text-xs text-gray-500 mt-2">Last read: <span className="text-gray-300 italic">{item.ultimoCapituloLido}</span></p>
                     </div>
                 </div>

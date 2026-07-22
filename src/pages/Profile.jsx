@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
 import { db } from '../services/firebaseConnection';
-import { doc, updateDoc, collection, query, where, getDocs, getCountFromServer, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, collection, query, where, getDocs, getCountFromServer, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 import {
     MdEdit, MdPerson, MdLink, MdClose, MdImage,
     MdVerified, MdPeople, MdPersonAdd, MdLibraryBooks, MdTimeline, MdAutoStories,
@@ -41,6 +41,7 @@ export default function Profile() {
     const [showCollectionModal, setShowCollectionModal] = useState(false);
     const [newCollectionName, setNewCollectionName] = useState('');
     const [selectedCollectionBooks, setSelectedCollectionBooks] = useState([]);
+    const [editingCollectionId, setEditingCollectionId] = useState(null);
 
     // Mantive apenas 'leituras' para as estatísticas gerais, removi cálculos de nível
     const leituras = user?.leituras || 0;
@@ -130,26 +131,66 @@ export default function Profile() {
         }
     }
 
-    async function handleCreateCollection() {
+    async function handleSaveCollection() {
         if (!newCollectionName.trim()) return toast.error("Collection name is required.");
         if (selectedCollectionBooks.length === 0) return toast.error("Select at least 1 book.");
         
         try {
-            const docRef = await addDoc(collection(db, "colecoes"), {
-                autorId: user.uid,
-                nome: newCollectionName.trim(),
-                obrasIds: selectedCollectionBooks,
-                createdAt: serverTimestamp()
-            });
-            setColecoes([...colecoes, { id: docRef.id, autorId: user.uid, nome: newCollectionName.trim(), obrasIds: selectedCollectionBooks }]);
-            setShowCollectionModal(false);
-            setNewCollectionName('');
-            setSelectedCollectionBooks([]);
-            toast.success("Collection created successfully!");
+            if (editingCollectionId) {
+                const docRef = doc(db, "colecoes", editingCollectionId);
+                await updateDoc(docRef, {
+                    nome: newCollectionName.trim(),
+                    obrasIds: selectedCollectionBooks
+                });
+                
+                setColecoes(colecoes.map(c => 
+                    c.id === editingCollectionId 
+                    ? { ...c, nome: newCollectionName.trim(), obrasIds: selectedCollectionBooks }
+                    : c
+                ));
+                toast.success("Collection updated successfully!");
+            } else {
+                const docRef = await addDoc(collection(db, "colecoes"), {
+                    autorId: user.uid,
+                    nome: newCollectionName.trim(),
+                    obrasIds: selectedCollectionBooks,
+                    createdAt: serverTimestamp()
+                });
+                setColecoes([...colecoes, { id: docRef.id, autorId: user.uid, nome: newCollectionName.trim(), obrasIds: selectedCollectionBooks }]);
+                toast.success("Collection created successfully!");
+            }
+            closeCollectionModal();
         } catch (error) {
-            console.error("Error creating collection:", error);
-            toast.error("Error creating collection.");
+            console.error("Error saving collection:", error);
+            toast.error("Error saving collection.");
         }
+    }
+
+    async function handleDeleteCollection(colId) {
+        if (!window.confirm("Are you sure you want to delete this collection?")) return;
+        try {
+            await deleteDoc(doc(db, "colecoes", colId));
+            setColecoes(colecoes.filter(c => c.id !== colId));
+            toast.success("Collection deleted successfully!");
+            closeCollectionModal();
+        } catch (error) {
+            console.error("Error deleting collection:", error);
+            toast.error("Error deleting collection.");
+        }
+    }
+
+    function closeCollectionModal() {
+        setShowCollectionModal(false);
+        setNewCollectionName('');
+        setSelectedCollectionBooks([]);
+        setEditingCollectionId(null);
+    }
+
+    function openEditCollection(col) {
+        setNewCollectionName(col.nome);
+        setSelectedCollectionBooks(col.obrasIds);
+        setEditingCollectionId(col.id);
+        setShowCollectionModal(true);
     }
 
     return (
@@ -303,7 +344,12 @@ export default function Profile() {
                     <div className="flex items-center justify-between mb-6 mt-16">
                         <h2 className="text-2xl font-bold text-white flex items-center gap-2"><MdLibraryBooks className="text-primary" /> My Collections</h2>
                         {minhasObras.length > 0 && (
-                            <button onClick={() => setShowCollectionModal(true)} className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg">+ New Collection</button>
+                            <button onClick={() => {
+                                setNewCollectionName('');
+                                setSelectedCollectionBooks([]);
+                                setEditingCollectionId(null);
+                                setShowCollectionModal(true);
+                            }} className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg">+ New Collection</button>
                         )}
                     </div>
 
@@ -315,8 +361,13 @@ export default function Profile() {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {colecoes.map(col => (
-                                <div key={col.id} className="bg-black/20 p-5 rounded-xl border border-white/5 flex flex-col gap-2 hover:border-white/10 transition-colors">
-                                    <h3 className="text-lg font-bold text-white">{col.nome}</h3>
+                                <div key={col.id} className="bg-black/20 p-5 rounded-xl border border-white/5 flex flex-col gap-2 hover:border-white/10 transition-colors relative group">
+                                    <div className="flex justify-between items-start">
+                                        <h3 className="text-lg font-bold text-white">{col.nome}</h3>
+                                        <button onClick={() => openEditCollection(col)} className="text-gray-500 hover:text-primary transition-colors opacity-0 group-hover:opacity-100 p-1">
+                                            <MdEdit size={16} />
+                                        </button>
+                                    </div>
                                     <p className="text-sm text-gray-400 font-medium">
                                         {col.obrasIds.length} {col.obrasIds.length === 1 ? 'Book' : 'Books'}
                                     </p>
@@ -344,8 +395,8 @@ export default function Profile() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 animate-fade-in">
                     <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl relative">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-white">Create Collection</h2>
-                            <button onClick={() => setShowCollectionModal(false)} className="text-gray-400 hover:text-white transition-colors bg-white/5 p-2 rounded-full hover:bg-white/10"><MdClose size={20} /></button>
+                            <h2 className="text-xl font-bold text-white">{editingCollectionId ? 'Edit Collection' : 'Create Collection'}</h2>
+                            <button onClick={closeCollectionModal} className="text-gray-400 hover:text-white transition-colors bg-white/5 p-2 rounded-full hover:bg-white/10"><MdClose size={20} /></button>
                         </div>
                         <div className="space-y-5">
                             <div>
@@ -379,7 +430,14 @@ export default function Profile() {
                                 </div>
                                 <p className="text-[10px] text-gray-500 mt-2">Select at least 1 book to create a collection.</p>
                             </div>
-                            <button onClick={handleCreateCollection} className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-xl transition shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)] mt-2">Save Collection</button>
+                            <div className="flex gap-2 mt-2">
+                                {editingCollectionId && (
+                                    <button onClick={() => handleDeleteCollection(editingCollectionId)} className="w-1/3 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition shadow-[0_0_15px_rgba(220,38,38,0.3)]">Delete</button>
+                                )}
+                                <button onClick={handleSaveCollection} className={`flex-1 bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-xl transition shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]`}>
+                                    {editingCollectionId ? 'Save Changes' : 'Save Collection'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

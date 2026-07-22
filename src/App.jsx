@@ -35,6 +35,7 @@ const Settings = lazy(() => import('./pages/Settings'));
 const WriteInteractiveStory = lazy(() => import('./pages/WriteInteractiveStory'));
 const ReadInteractiveStory = lazy(() => import('./pages/ReadInteractiveStory'));
 const Feedback = lazy(() => import('./pages/Feedback'));
+const Collection = lazy(() => import('./pages/Collection'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-[#121212]">
@@ -57,6 +58,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/story/:id" element={<Story />} />
+                <Route path="/collection/:id" element={<Collection />} />
                 <Route path="/read/:id" element={<Read />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/write" element={<Write />} />
